@@ -1,4 +1,10 @@
 // Listen for messages from the popup script
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "analyzePage") {
+    // Handle the action
+  }
+});
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "getArticleText") {
       // Extract the article text from the page
@@ -16,4 +22,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
     return articleText;
   }
+  
+  chrome.runtime.sendMessage({ action: "analyzePage" }, response => {
+    if (chrome.runtime.lastError) {
+      console.error("Runtime error:", chrome.runtime.lastError);
+    } else {
+      console.log("Message sent successfully");
+    }
+  });
   

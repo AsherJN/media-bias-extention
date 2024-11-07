@@ -1,37 +1,87 @@
 document.getElementById("analyze-button").addEventListener("click", async () => {
-    // Display loading message
-    const resultsDiv = document.getElementById("results");
-    resultsDiv.textContent = "Analyzing...";
-  
-    // Send a message to the content script to get the article text
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  
-    chrome.tabs.sendMessage(tab.id, { action: "getArticleText" }, async (response) => {
+  const resultsDiv = document.getElementById("results");
+  resultsDiv.textContent = "Analyzing...";
+
+  // Get the current active tab
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+  // Send a message to the content script to get the article text
+  console.log("fuck you2");
+
+  chrome.tabs.sendMessage(tab.id, { action: "getArticleText" }, async (response) => {
+    console.log("fuck you");
       if (chrome.runtime.lastError) {
-        resultsDiv.textContent = "Error: " + chrome.runtime.lastError.message;
-        return;
+          resultsDiv.textContent = "Error: " + chrome.runtime.lastError.message;
+          return;
       }
-  
+
       if (response && response.articleText) {
-        // Send the article text to the backend server for analysis
-        try {
-            // Note: Replace "https://your-backend-server.com/analyze" with the actual URL of your backend server when it's ready.
-          const analysis = await fetch("https://your-backend-server.com/analyze", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ text: response.articleText }),
-          }).then((res) => res.json());
-  
-          // Display the results
-          resultsDiv.textContent = JSON.stringify(analysis, null, 2);
-        } catch (error) {
-          resultsDiv.textContent = "Error fetching analysis: " + error.message;
-        }
+        console.log("entered if statement")
+          try {
+              // Send the article text to your backend server
+              const res = await fetch("http://127.0.0.1:5000/analyze", {
+                  method: "POST",
+                  headers: {
+                      "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({ text: response.articleText }),
+              });
+
+              if (!res.ok) {
+                  throw new Error(`Server error: ${res.statusText}`);
+              }
+
+              const analysis = await res.json();
+
+              if (analysis.error) {
+                  resultsDiv.textContent = "Error: " + analysis.error;
+              } else {
+                  // Display the results in the dashboard
+                  displayResults(analysis);
+              }
+          } catch (error) {
+              resultsDiv.textContent = "Error fetching analysis: " + error.message;
+          }
       } else {
-        resultsDiv.textContent = "Could not retrieve article text.";
+          resultsDiv.textContent = "Could not retrieve article text.";
       }
-    });
   });
-  
+});
+
+function displayResults(analysis) {
+  const resultsDiv = document.getElementById("results");
+  resultsDiv.innerHTML = ""; // Clear previous results
+
+  // Bias Score
+  const biasScoreElem = document.createElement("div");
+  biasScoreElem.textContent = `Bias Score: ${analysis.bias_score}`;
+  resultsDiv.appendChild(biasScoreElem);
+
+  // Language Tone
+  const languageToneElem = document.createElement("div");
+  languageToneElem.textContent = `Language Tone: ${analysis.language_tone}`;
+  resultsDiv.appendChild(languageToneElem);
+
+  // Framing Perspective
+  const framingElem = document.createElement("div");
+  framingElem.textContent = `Framing Perspective: ${analysis.framing_perspective}`;
+  resultsDiv.appendChild(framingElem);
+
+  // Disputed Claims
+  if (analysis.disputed_claims && analysis.disputed_claims.length > 0) {
+      const disputedClaimsElem = document.createElement("div");
+      disputedClaimsElem.textContent = "Disputed Claims:";
+      const claimsList = document.createElement("ul");
+      analysis.disputed_claims.forEach((claim) => {
+          const listItem = document.createElement("li");
+          listItem.textContent = claim;
+          claimsList.appendChild(listItem);
+      });
+      disputedClaimsElem.appendChild(claimsList);
+      resultsDiv.appendChild(disputedClaimsElem);
+  } else {
+      const noClaimsElem = document.createElement("div");
+      noClaimsElem.textContent = "No disputed claims found.";
+      resultsDiv.appendChild(noClaimsElem);
+  }
+}

@@ -5,9 +5,26 @@ from openai import OpenAI
 import os
 import json
 
+def generate_prompt(article_text):
+    prompt = f"""
+Analyze the following news article for media bias and provide the results in JSON format with the following fields:
+- bias_score: integer between -10 (left-leaning) to +10 (right-leaning), 0 is neutral.
+- language_tone: 'positive', 'negative', or 'neutral'.
+- framing_perspective: A brief description of the framing and perspective.
+- disputed_claims: A list of any claims that are contested or debunked.
+
+Article Text:
+{article_text}
+
+Provide the analysis in JSON format only.
+"""
+    return prompt
+
+
+
 # Initialize the Flask app
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/analyze": {"origins": "*"}})
 
 # Set up OpenAI client
 load_dotenv()
@@ -23,23 +40,12 @@ def analyze():
     article_text = data['text']
 
     # Create the prompt for OpenAI
-    prompt = f"""
-Analyze the following news article for media bias and provide the results in JSON format with the following fields:
-- bias_score: integer between -10 (left-leaning) to +10 (right-leaning), 0 is neutral.
-- language_tone: 'positive', 'negative', or 'neutral'.
-- framing_perspective: A brief description of the framing and perspective.
-- disputed_claims: A list of any claims that are contested or debunked.
-
-Article Text:
-{article_text}
-
-Provide the analysis in JSON format only.
-"""
+    prompt = generate_prompt(article_text)
 
     try:
         # Call the OpenAI API using the ChatCompletion endpoint
         response = client.chat.completions.create(
-            model="gpt-4",  # or "gpt-3.5-turbo" if you prefer
+            model="gpt-3.5-turbo",  # or "gpt-3.5-turbo" if you prefer
             messages=[
                 {"role": "system", "content": "You are a media bias analysis assistant. Provide responses in JSON format only."},
                 {"role": "user", "content": prompt}
