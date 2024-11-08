@@ -128,7 +128,7 @@ media-bias-analyzer/
 │       ├── icon48.png
 │       └── icon128.png
 └── README.md
-
+```
 
 # Dependencies
 
@@ -141,7 +141,7 @@ media-bias-analyzer/
 Install all backend dependencies via pip using the `requirements.txt` file:
 ```bash
 pip install -r requirements.txt
-
+```
 ## Frontend Dependencies (Chrome Extension)
 
 - **None** (All dependencies are handled via CDN or are native to JavaScript)
