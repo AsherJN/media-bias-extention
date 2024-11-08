@@ -1,4 +1,49 @@
+<!-- In your popup.html -->
 <!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Existing head content -->
+  <meta charset="UTF-8" />
+  <title>Media Bias Analyzer</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div id="app">
+    <h1>Media Bias Analyzer</h1>
+    <button id="analyze-button">Analyze This Page</button>
+    <!-- Loading Spinner -->
+    <div id="loading" class="spinner" style="display: none;"></div>
+    <!-- Results Container -->
+    <div id="results">
+      <!-- Bias Score Meter -->
+      <div id="bias-meter-container" style="display: none;">
+        <h2>Bias Score</h2>
+        <div id="bias-meter">
+          <div id="bias-arrow"></div>
+          <div id="bias-labels">
+            <span>-5</span>
+            <span>-1</span>
+            <span>0</span>
+            <span>+1</span>
+            <span>+5</span>
+          </div>
+          <div id="bias-interpretation">
+            <span>Liberal</span>
+            <span>Fair</span>
+            <span>Conservative</span>
+          </div>
+        </div>
+      </div>
+      <!-- Other Results -->
+      <div id="other-results"></div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
+
+
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -6,6 +51,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Media Bias Analyzer</title>
   <link rel="stylesheet" href="popup.css" />
+  <script src="chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 </head>
 <body>
   <div id="app">
@@ -19,4 +66,4 @@
   <script src="popup.js"></script>
 </body>
 </html>
-
+ -->

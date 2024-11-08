@@ -25,12 +25,20 @@
       "<all_urls>"
     ],
     "background": {
-      "service_worker": "background.js"
+      "service_worker": "background.js",
+      "scripts": ["background.js"],
+      "persistent": false
     },
     "content_scripts": [
       {
         "matches": ["<all_urls>"],
         "js": ["contentScript.js"]
+      }
+    ],
+    "web_accessible_resources": [
+      {
+        "resources": ["chart.js"],
+        "matches": ["<all_urls>"]
       }
     ]
   }

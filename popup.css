@@ -1,10 +1,11 @@
 /* Existing styles */
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
   margin: 0;
   padding: 10px;
-  width: 300px;
+  width: 320px;
 }
 
 #analyze-button {
@@ -89,13 +90,126 @@ body {
 
 /* Adjust the popup's height */
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
   margin: 0;
   padding: 10px;
-  width: 300px;
-  max-height: 600px; /* Adjust as needed */
-  overflow-y: auto;
+  width: 320px;
 }
+
+/* Existing styles */
+
+/* Bias Meter Styles */
+#bias-meter-container {
+  margin-top: 20px;
+}
+
+#bias-meter {
+  position: relative;
+  width: 100%;
+  height: 20px;
+  background: linear-gradient(to right, #476C9B 0%, #476C9B 40%, #FFFFFF 50%, #F52F57 60%, #F52F57 100%);
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+#bias-arrow {
+  position: absolute;
+  top: -10px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid black;
+  left: 50%; /* Will be adjusted dynamically */
+  transform: translateX(-50%);
+}
+
+#bias-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+#bias-labels span {
+  width: 20%;
+  text-align: center;
+}
+
+#bias-interpretation {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+#bias-interpretation span {
+  width: 33%;
+  text-align: center;
+}
+
+/* Text Bubble Styles */
+.text-bubble {
+  background-color: #f1f1f1;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 15px;
+}
+
+.text-bubble h3 {
+  margin-top: 0;
+}
+
+.text-bubble p {
+  margin-bottom: 0;
+  white-space: pre-wrap; /* Preserve newlines */
+}
+
+/* Global Styles */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+  margin: 0;
+  padding: 10px;
+  width: 320px;
+}
+
+h1 {
+  font-size: 20px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+h2 {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+h3 {
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+button {
+  background-color: #0078D7;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+}
+
+button:hover {
+  background-color: #005A9E;
+}
+
+.spinner::after {
+  border-top-color: #0078D7;
+}
+
 
 
 /* body {
