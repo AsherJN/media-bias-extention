@@ -5,9 +5,27 @@ from openai import OpenAI
 import os
 import json
 
+def reformat_json_response(response_text):
+    """
+    Extracts JSON content from a formatted string while removing triple backticks 
+    and retaining the original JSON syntax and spacing.
+    
+    Args:
+        response_text (str): The text containing the JSON response with formatting.
+        
+    Returns:
+        str: A cleaned JSON string retaining its syntax and formatting.
+    """
+    # Remove any occurrences of triple backticks
+    response_text = response_text.replace("```json", "").replace("```", "").strip()
+    
+    # Return the cleaned content
+    return response_text
+
 def generate_prompt(article_text):
     prompt = f"""
 Role: You are a highly vigilant internet watchdog who's main priority is to assist users in navigating media bias that may be present in the news/media that people consume.
+
 Context: This Media Bias Analysis Rubric will help equip you to objectively evaluate bias in news articles by focusing on Overall Bias Score, Language and Tone, Framing and Perspective, and Alternative Perspectives. By systematically assessing each of these areas, users can assign a Composite Bias Score, enabling a clearer, more informed understanding of an article's ideological lean and balance.
 
 1. Overall Bias Score
@@ -59,16 +77,28 @@ Are alternative views genuinely explored, or are they presented only to be dismi
 Are there credible sources supporting all perspectives included in the article?
 How does the article treat opposing perspectives in terms of tone, placement, and framing?
 
+Listed below delimitted by the triple dashes is the news article that you will be analyzing:
+---
+{article_text}
+---
+
 Task: By using the Media Bias Analysis Rubric, your task to to analyze the following news article for media bias and provide the results in JSON format with the following fields:
 - bias_score: integer between -5 (left-leaning) to +5 (right-leaning), 0 is neutral.
 - language_tone: A 2 sentence summary on language and tone bias
 - framing_perspective: A comprehensive summary of the framing and perspective of the article. Limit to less than 150 words.
 - alternative_perspectives: Evaluate whether the article acknowledges and fairly presents differing viewpoints, particularly those that challenge the article's main narrative. This should be a short summary, less than 100 words.
 
-Article Text:
-{article_text}
+Output Instructions: Your output is strictly supposed to be in JSON formatting and your output should contain nothing else beyond the JSON content.
 
-Provide the analysis in JSON format only.
+Output Example:
+
+{{
+  "bias_score": 0,
+  "language_tone": "Language Tone Analysis goes here",
+  "framing_perspective": "Framing Perspective Analysis goes here",
+  "alternative_perspectives": "Alternative Perspectives Analysis goes here"
+}}
+
 """
     return prompt
 
@@ -97,21 +127,23 @@ def analyze():
     try:
         # Call the OpenAI API using the ChatCompletion endpoint
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",  # or "gpt-3.5-turbo" if you prefer
+            model="gpt-4o-mini",  # or "gpt-3.5-turbo" if you prefer
             messages=[
-                {"role": "system", "content": "You are a media bias analysis assistant. Provide responses in JSON format only."},
+                {"role": "system", "content": "You are a highly vigilant internet watchdog who's main priority is to assist users in navigating media bias that may be present in the news/media that people consume. Provide responses in JSON format only."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.3,
             # max_tokens=500
         )
-        
+        # print(response)
         # Extract the generated text
         analysis = response.choices[0].message.content.strip()
+        analysis = reformat_json_response(analysis)
         print(analysis)
         # Parse the JSON output
+        
         analysis_json = json.loads(analysis)
-        # print(analysis)
+        # print(analysis_json)
         return jsonify(analysis_json)
 
     except json.JSONDecodeError as e:
