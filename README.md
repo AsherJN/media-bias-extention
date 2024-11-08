@@ -41,7 +41,7 @@ The Media Bias Analyzer is a Chrome extension that analyzes news articles for me
 Clone the repository to your local machine:
 ```bash
 git clone https://github.com/yourusername/media-bias-analyzer.git
-
+```
 ## Set Up the Backend Server
 
 1. **Navigate to the Backend Directory:**
@@ -99,7 +99,7 @@ Make sure the backend Flask server is running:
 cd media-bias-analyzer/media-bias-backend
 source venv/bin/activate
 python app.py
-
+```
 ## Use the Extension
 1. **Navigate to a news article** in Chrome.
 2. **Click on the Media Bias Analyzer extension icon**.
@@ -128,7 +128,7 @@ media-bias-analyzer/
 │       ├── icon48.png
 │       └── icon128.png
 └── README.md
-
+```
 
 # Dependencies
 
@@ -141,7 +141,7 @@ media-bias-analyzer/
 Install all backend dependencies via pip using the `requirements.txt` file:
 ```bash
 pip install -r requirements.txt
-
+```
 ## Frontend Dependencies (Chrome Extension)
 
 - **None** (All dependencies are handled via CDN or are native to JavaScript)
