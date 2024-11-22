@@ -5,7 +5,9 @@ body {
   color: #333;
   margin: 0;
   padding: 10px;
-  width: 320px;
+  width: 500px;
+  
+  /* height: 600px; */
 }
 
 #analyze-button {
@@ -88,15 +90,6 @@ body {
   overflow-y: auto;  /* Enable vertical scrolling */
 }
 
-/* Adjust the popup's height */
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #333;
-  margin: 0;
-  padding: 10px;
-  width: 320px;
-}
-
 /* Existing styles */
 
 /* Bias Meter Styles */
@@ -167,13 +160,6 @@ body {
 }
 
 /* Global Styles */
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #333;
-  margin: 0;
-  padding: 10px;
-  width: 320px;
-}
 
 h1 {
   font-size: 20px;

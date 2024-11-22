@@ -4,6 +4,7 @@ from flask_cors import CORS
 from openai import OpenAI
 import os
 import json
+import re
 
 def reformat_json_response(response_text):
     """
@@ -82,7 +83,9 @@ Listed below delimitted by the triple dashes is the news article that you will b
 {article_text}
 ---
 
-Task: By using the Media Bias Analysis Rubric, your task to to analyze the following news article for media bias and provide the results in JSON format with the following fields:
+Task: Leveraging GPT-4o's ability to search the internet and by using the Media Bias Analysis Rubric, your task to to analyze the following news article for media bias and provide the results in JSON format with the following fields:
+- context: Use the internet to search to identify key pieces of background information that a user would need to know in order to understand what the article is about. Limit these contextual points to 100 words.
+- content_summary: A 200 word article summary giving the user a comprehensive overview of the key points and takeways of the article.
 - bias_score: integer between -5 (left-leaning) to +5 (right-leaning), 0 is neutral.
 - language_tone: A 2 sentence summary on language and tone bias
 - framing_perspective: A comprehensive summary of the framing and perspective of the article. Limit to less than 150 words.
@@ -93,6 +96,8 @@ Output Instructions: Your output is strictly supposed to be in JSON formatting a
 Output Example:
 
 {{
+  "context": "Contextual summary goes here",
+  "content_summary": "Content Summary of the article goes here",
   "bias_score": 0,
   "language_tone": "Language Tone Analysis goes here",
   "framing_perspective": "Framing Perspective Analysis goes here",
@@ -120,14 +125,14 @@ def analyze():
         return jsonify({'error': 'No text provided'}), 400
 
     article_text = data['text']
-
+    
     # Create the prompt for OpenAI
     prompt = generate_prompt(article_text)
 
     try:
         # Call the OpenAI API using the ChatCompletion endpoint
         response = client.chat.completions.create(
-            model="gpt-4o-mini",  # or "gpt-3.5-turbo" if you prefer
+            model="gpt-4o-mini", 
             messages=[
                 {"role": "system", "content": "You are a highly vigilant internet watchdog who's main priority is to assist users in navigating media bias that may be present in the news/media that people consume. Provide responses in JSON format only."},
                 {"role": "user", "content": prompt}
@@ -155,99 +160,51 @@ if __name__ == '__main__':
     app.run(debug=True)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# from dotenv import load_dotenv
-# from flask import Flask, request, jsonify
-# from flask_cors import CORS
-# import openai
-# import os
-# import json
-
-# # Initialize the Flask app
-# app = Flask(__name__)
-# CORS(app)
-
-# # Set up OpenAI API key
-# load_dotenv()
-# openai.api_key = os.getenv("OPENAI_API_KEY")
-
-# @app.route('/analyze', methods=['POST'])
-# def analyze():
-#     data = request.get_json()
-
-#     if not data or 'text' not in data:
-#         return jsonify({'error': 'No text provided'}), 400
-
-#     article_text = data['text']
-
-#     # Create the prompt for OpenAI
-#     prompt = f"""
-# Analyze the following news article for media bias and provide the results in JSON format with the following fields:
-# - bias_score: integer between -10 (left-leaning) to +10 (right-leaning), 0 is neutral.
-# - language_tone: 'positive', 'negative', or 'neutral'.
-# - framing_perspective: A brief description of the framing and perspective.
-# - disputed_claims: A list of any claims that are contested or debunked.
-
-# Article Text:
-# {article_text}
-
-# Provide the analysis in JSON format only.
-# """
-
-#     try:
-#         # Call the OpenAI API using the Completion endpoint
-#         response = openai.Completion.create(
-#             engine="text-davinci-003",  # Use 'engine' instead of 'model' for older versions
-#             prompt=prompt,
-#             max_tokens=500,
-#             temperature=0.7,
-#             n=1,
-#             stop=None,
-#         )
-
-#         # Extract the generated text
-#         analysis = response.choices[0].text.strip()
-
-#         # Parse the JSON output
-#         analysis_json = json.loads(analysis)
-
-#         return jsonify(analysis_json)
-
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 500
-
-# if __name__ == '__main__':
-#     app.run(debug=True)
-
 # from dotenv import load_dotenv
 # from flask import Flask, request, jsonify
 # from flask_cors import CORS
 # from openai import OpenAI
 # import os
 # import json
+# import re
 
-# def generate_prompt(article_text):
+# def reformat_json_response(response_text):
+#     """
+#     Extracts JSON content from a formatted string while removing triple backticks 
+#     and retaining the original JSON syntax and spacing.
+    
+#     Args:
+#         response_text (str): The text containing the JSON response with formatting.
+        
+#     Returns:
+#         str: A cleaned JSON string retaining its syntax and formatting.
+#     """
+#     # Remove any occurrences of triple backticks
+#     response_text = response_text.replace("```json", "").replace("```", "").strip()
+    
+#     # Return the cleaned content
+#     return response_text
+
+# def generate_summary(article_text):
 #     prompt = f"""
 # Role: You are a highly vigilant internet watchdog who's main priority is to assist users in navigating media bias that may be present in the news/media that people consume.
+
+# Task: Based on the following news article delimited by triple dashes, please understand the and synthesize the topic of the article.
+# Then, use your capability to search the internet and then generate a complete and comprehensive overview covering all events and perspectives surrounding this topic. Your response should be at minimum 700 words and be very well organized and parsable. The summary should be organized around an initial comprehensive summary of the topic, major key take-aways around the events of that topic, history of the events around that topic, current events surround that topic, as well as competing perspectives on the events of that topic (liberal POV vs Moderate POV vs Conservative POV)
+
+# Please provide only this comprehensive overview and do not include any other text. You must use your internet search capabilities to complete this task
+
+# Article:
+# ---
+# {article_text}
+# ---
+# """
+#     return prompt
+
+# def generate_prompt(article_text, summary):
+#     prompt = f"""
+# Role: You are a highly vigilant internet watchdog who's main priority is to assist users in navigating media bias that may be present in the news/media that people consume.
+
 # Context: This Media Bias Analysis Rubric will help equip you to objectively evaluate bias in news articles by focusing on Overall Bias Score, Language and Tone, Framing and Perspective, and Alternative Perspectives. By systematically assessing each of these areas, users can assign a Composite Bias Score, enabling a clearer, more informed understanding of an article's ideological lean and balance.
 
 # 1. Overall Bias Score
@@ -299,21 +256,40 @@ if __name__ == '__main__':
 # Are there credible sources supporting all perspectives included in the article?
 # How does the article treat opposing perspectives in terms of tone, placement, and framing?
 
+# Contextual Information: The following is an objective summary of the events surrounding the topic of the article:
+# ---
+# {summary}
+# ---
+
+# Listed below delimitted by the triple dashes is the news article that you will be analyzing:
+# ---
+# {article_text}
+# ---
+
 # Task: By using the Media Bias Analysis Rubric, your task to to analyze the following news article for media bias and provide the results in JSON format with the following fields:
+# - content_summary: A 200 word article summary giving the user a comprehensive overview of the key points and takeways of the article.
 # - bias_score: integer between -5 (left-leaning) to +5 (right-leaning), 0 is neutral.
 # - language_tone: A 2 sentence summary on language and tone bias
 # - framing_perspective: A comprehensive summary of the framing and perspective of the article. Limit to less than 150 words.
 # - alternative_perspectives: Evaluate whether the article acknowledges and fairly presents differing viewpoints, particularly those that challenge the article's main narrative. This should be a short summary, less than 100 words.
 
-# Article Text:
-# {article_text}
+# Output Instructions: Your output is strictly supposed to be in JSON formatting and your output should contain nothing else beyond the JSON content.
 
-# Provide the analysis in JSON format only.
+# Output Example:
+
+# {{
+#   "content_summary": "Content Summary of the article goes here",
+#   "bias_score": 0,
+#   "language_tone": "Language Tone Analysis goes here",
+#   "framing_perspective": "Framing Perspective Analysis goes here",
+#   "alternative_perspectives": "Alternative Perspectives Analysis goes here"
+# }}
+
 # """
 #     return prompt
 
 
-# # disputed_claims
+
 # # Initialize the Flask app
 # app = Flask(__name__)
 # CORS(app, resources={r"/analyze": {"origins": "*"}})
@@ -331,27 +307,48 @@ if __name__ == '__main__':
 
 #     article_text = data['text']
 
-#     # Create the prompt for OpenAI
-#     prompt = generate_prompt(article_text)
+#     # Step 1: Generate the summary
+#     summary_prompt = generate_summary(article_text)
 
 #     try:
-#         # Call the OpenAI API using the ChatCompletion endpoint
-#         response = client.chat.completions.create(
-#             model="GPT-4o",  # or "gpt-3.5-turbo" if you prefer
+#         # Call the OpenAI API to generate the summary
+#         summary_response = client.chat.completions.create(
+#             model="gpt-4o-mini",
 #             messages=[
-#                 {"role": "system", "content": "You are a media bias analysis assistant. Provide responses in JSON format only."},
+#                 {
+#                     "role": "system",
+#                     "content": "You are a knowledgeable assistant capable of providing comprehensive and objective summaries on any topic, based on your knowledge up to October 2023."
+#                 },
+#                 {"role": "user", "content": summary_prompt}
+#             ],
+#             temperature=0.3,
+#         )
+
+#         # Extract the summary
+#         summary = summary_response.choices[0].message.content.strip()
+#         print(summary)
+#         # Step 2: Generate the prompt for bias analysis, including the summary
+#         prompt = generate_prompt(article_text, summary)
+
+#         # Call the OpenAI API for bias analysis
+#         analysis_response = client.chat.completions.create(
+#             model="gpt-4o-mini",
+#             messages=[
+#                 {
+#                     "role": "system",
+#                     "content": "You are a highly vigilant internet watchdog whose main priority is to assist users in navigating media bias that may be present in the news/media that people consume. Provide responses in JSON format only."
+#                 },
 #                 {"role": "user", "content": prompt}
 #             ],
 #             temperature=0.3,
-#             max_tokens=500
 #         )
 
 #         # Extract the generated text
-#         analysis = response.choices[0].message.content.strip()
+#         analysis = analysis_response.choices[0].message.content.strip()
+#         analysis = reformat_json_response(analysis)
 
 #         # Parse the JSON output
 #         analysis_json = json.loads(analysis)
-
 #         return jsonify(analysis_json)
 
 #     except json.JSONDecodeError as e:

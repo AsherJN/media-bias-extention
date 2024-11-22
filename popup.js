@@ -79,6 +79,8 @@ function displayResults(analysis) {
   otherResultsDiv.innerHTML = ""; // Clear previous results
 
   // Create text bubbles for other metrics
+  createTextBubble("Context", analysis.context, otherResultsDiv);
+  createTextBubble("Summary", analysis.content_summary, otherResultsDiv);
   createTextBubble("Language Tone", analysis.language_tone, otherResultsDiv);
   createTextBubble("Framing Perspective", analysis.framing_perspective, otherResultsDiv);
   createTextBubble("Alternative Perspectives", analysis.alternative_perspectives, otherResultsDiv);
