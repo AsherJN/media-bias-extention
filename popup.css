@@ -1,19 +1,61 @@
 /* Existing styles */
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Instrument Sans', Tahoma, Geneva, Verdana, sans-serif;
   color: #333;
   margin: 0;
-  padding: 10px;
-  width: 500px;
+  /* padding: 10px; */
+  min-width: 500px;
+  max-width: 500px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   
   /* height: 600px; */
 }
+/* Flex Box Bitch */
+#app {
+  align-items: center;
+}
+
+#header {
+  flex-direction: column;
+  
+}
+
+#subheader { 
+  
+  margin-left: 15px;
+  
+}
+
+#headerButton {
+  display: flex;
+  justify-content: space-between;
+  /* background: linear-gradient(to right,
+    rgba(145, 196, 242, 0.4), 
+    rgba(242, 204, 195, 0.4),
+    rgba(231, 143, 142, 0.4) 
+  ); */
+  background-color: #ECF9FC;
+  /* border-radius: 10px; */
+  backdrop-filter: blur(5px); /* Optional: Adds a frosted glass effect */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional: To add depth */
+
+}
+
+
 
 #analyze-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  margin-top: 10px;
+  padding: 5px 10px;
+  font-size: 20px;
+  margin: 30px 20px;
+  min-width: 150px;
+  max-width: 200px;
+  border-radius: 20px;
+  background-color: #628FF2;
+
+  flex: 0 0 auto; 
 }
 
 #results {
@@ -99,11 +141,13 @@ body {
 
 #bias-meter {
   position: relative;
-  width: 100%;
-  height: 20px;
-  background: linear-gradient(to right, #476C9B 0%, #476C9B 40%, #FFFFFF 50%, #F52F57 60%, #F52F57 100%);
-  border-radius: 10px;
-  margin-bottom: 10px;
+  left: 13px;
+  width: 95%;
+  height: 15px;
+  background: linear-gradient(to right, #3e87f1, #E5E6EA, #f0484b);
+  border-radius: 20px;
+  margin-top: 10px;
+  margin-bottom: 40px;
 }
 
 #bias-arrow {
@@ -122,6 +166,7 @@ body {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
+  margin-top: 15px;
 }
 
 #bias-labels span {
@@ -133,8 +178,8 @@ body {
   display: flex;
   justify-content: space-between;
   font-size: 14px;
-  font-weight: bold;
-  margin-top: 5px;
+  /* font-weight: bold; */
+  margin-top: 25px;
 }
 
 #bias-interpretation span {
@@ -143,33 +188,94 @@ body {
 }
 
 /* Text Bubble Styles */
+#summary {
+  display: flex;
+  flex: 2 0 auto;
+  justify-content: center;
+}
+
+#other-results {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+/* Text Bubble Styles */
 .text-bubble {
-  background-color: #f1f1f1;
-  border-radius: 10px;
+  background-color: white;
+  border: 2px solid gray;
+  border-radius: 20px;
+  min-width: 100px;
+  max-width: 95%;
   padding: 10px;
+  margin-left: 15px;
+  margin-right: 15px;
   margin-bottom: 15px;
+  flex: 0 1 auto;
 }
 
 .text-bubble h3 {
   margin-top: 0;
+  cursor: pointer; /* Indicates that the title is clickable */
+  user-select: none; /* Prevents text selection on double-click */
 }
 
-.text-bubble p {
-  margin-bottom: 0;
-  white-space: pre-wrap; /* Preserve newlines */
+.bubble-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
 }
+
+.bubble-content.open {
+  max-height: 500px; /* Adjust as needed */
+  transition: max-height 0.5s ease-in;
+}
+
+.bubble-content p, .bubble-content ul {
+  margin: 0;
+  padding: 0;
+}
+
+.toggle-icon {
+  font-weight: bold;
+}
+
+
+.bubble-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer; /* Indicates that the title is clickable */
+  user-select: none; /* Prevents text selection on double-click */
+  margin-top: 0;
+}
+
+.bubble-title:hover {
+  color: #007BFF; /* Change text color on hover */
+}
+
+.bubble-title:hover .toggle-icon {
+  color: #007BFF; /* Change icon color on hover */
+}
+
+
 
 /* Global Styles */
 
 h1 {
   font-size: 20px;
-  margin-bottom: 15px;
-  text-align: center;
+  /* padding-top: 10px; */
+  margin-top: 25px;
+  margin-left: 15px;
+
+  /* text-align: center; */
+  min-width: 100px;
+  flex: 2 1 auto;
 }
 
 h2 {
   font-size: 18px;
-  margin-bottom: 10px;
+  margin: 15px;
 }
 
 h3 {
@@ -198,20 +304,3 @@ button:hover {
 
 
 
-/* body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 10px;
-    width: 300px;
-  }
-  
-  #analyze-button {
-    padding: 10px 20px;
-    font-size: 16px;
-    margin-top: 10px;
-  }
-  
-  #results {
-    margin-top: 20px;
-  }
-   */

@@ -90,9 +90,22 @@ function createTextBubble(title, content, parentElement) {
   const bubble = document.createElement("div");
   bubble.className = "text-bubble";
 
+  // Create the title element
   const bubbleTitle = document.createElement("h3");
+  bubbleTitle.className = "bubble-title";
   bubbleTitle.textContent = title;
+
+  // Create an icon element
+  const icon = document.createElement("span");
+  icon.className = "toggle-icon";
+  icon.textContent = "+"; // Initial state is collapsed
+  bubbleTitle.appendChild(icon);
+
   bubble.appendChild(bubbleTitle);
+
+  // Create the content container
+  const bubbleContentContainer = document.createElement("div");
+  bubbleContentContainer.className = "bubble-content";
 
   if (Array.isArray(content)) {
     if (content.length > 0) {
@@ -102,20 +115,31 @@ function createTextBubble(title, content, parentElement) {
         listItem.textContent = item;
         list.appendChild(listItem);
       });
-      bubble.appendChild(list);
+      bubbleContentContainer.appendChild(list);
     } else {
       const bubbleContent = document.createElement("p");
       bubbleContent.textContent = "No disputed claims found.";
-      bubble.appendChild(bubbleContent);
+      bubbleContentContainer.appendChild(bubbleContent);
     }
   } else {
     const bubbleContent = document.createElement("p");
     bubbleContent.textContent = content;
-    bubble.appendChild(bubbleContent);
+    bubbleContentContainer.appendChild(bubbleContent);
   }
 
+  bubble.appendChild(bubbleContentContainer);
   parentElement.appendChild(bubble);
+
+  // Add click event listener to the title
+  bubbleTitle.addEventListener("click", function() {
+    const isOpen = bubbleContentContainer.classList.toggle("open");
+    icon.textContent = isOpen ? "−" : "+";
+  });
 }
+
+
+
+
 
 
       

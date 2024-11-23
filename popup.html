@@ -9,8 +9,14 @@
 </head>
 <body>
   <div id="app">
-    <h1>Media Bias Analyzer</h1>
-    <button id="analyze-button">Analyze This Page</button>
+    <div id="headerButton">
+      <div id="header">
+        <h1>Media Buddy</h1>
+        <p id="subheader">AI-Powered Content Analysis</p>
+      </div>
+    
+      <button id="analyze-button">Analyze</button>
+    </div>
     <!-- Loading Spinner -->
     <div id="loading" class="spinner" style="display: none;"></div>
     <!-- Results Container -->
@@ -18,23 +24,27 @@
       <!-- Bias Score Meter -->
       <div id="bias-meter-container" style="display: none;">
         <h2>Bias Score</h2>
+        <p id="subheader">AI-Powered Content Analysis</p>
+
         <div id="bias-meter">
           <div id="bias-arrow"></div>
           <div id="bias-labels">
-            <span>-5</span>
-            <span>-1</span>
-            <span>0</span>
-            <span>+1</span>
-            <span>+5</span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
           </div>
           <div id="bias-interpretation">
-            <span>Liberal</span>
-            <span>Fair</span>
-            <span>Conservative</span>
+            <span>Liberal-Lean</span>
+            <span>Nuetral</span>
+            <span>Conservative-Lean</span>
           </div>
         </div>
       </div>
       <!-- Other Results -->
+      <div id="summary"></div>
+
       <div id="other-results"></div>
     </div>
   </div>
