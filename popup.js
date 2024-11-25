@@ -74,16 +74,55 @@ function displayResults(analysis) {
   // Update arrow position
   biasArrow.style.left = `${biasPercentage}%`;
 
+  // Summary
+  const summaryDiv = document.getElementById("summary");
+  summaryDiv.innerHTML = ""; // Clear previous results
+
   // Other Results
   const otherResultsDiv = document.getElementById("other-results");
   otherResultsDiv.innerHTML = ""; // Clear previous results
 
   // Create text bubbles for other metrics
-  createTextBubble("Context", analysis.context, otherResultsDiv);
-  createTextBubble("Summary", analysis.content_summary, otherResultsDiv);
+  createSummaryBubble("Bias Analysis Result", analysis.analysis_summary, summaryDiv);
+  createTextBubble("Article Summary", analysis.content_summary, otherResultsDiv);
   createTextBubble("Language Tone", analysis.language_tone, otherResultsDiv);
   createTextBubble("Framing Perspective", analysis.framing_perspective, otherResultsDiv);
+  createTextBubble("Historical Context", analysis.context, otherResultsDiv);
   createTextBubble("Alternative Perspectives", analysis.alternative_perspectives, otherResultsDiv);
+  createTextBubble("Article Publisher Bias", analysis.publisher_bias, otherResultsDiv);
+
+  
+}
+
+function createSummaryBubble(title, content, parentElement) {
+  const bubble = document.createElement("div");
+  bubble.className = "summary-text-bubble";
+
+  const bubbleTitle = document.createElement("h3");
+  bubbleTitle.textContent = title;
+  bubble.appendChild(bubbleTitle);
+
+  if (Array.isArray(content)) {
+    if (content.length > 0) {
+      const list = document.createElement("ul");
+      content.forEach(item => {
+        const listItem = document.createElement("li");
+        listItem.textContent = item;
+        list.appendChild(listItem);
+      });
+      bubble.appendChild(list);
+    } else {
+      const bubbleContent = document.createElement("p");
+      bubbleContent.textContent = "No disputed claims found.";
+      bubble.appendChild(bubbleContent);
+    }
+  } else {
+    const bubbleContent = document.createElement("p");
+    bubbleContent.textContent = content;
+    bubble.appendChild(bubbleContent);
+  }
+
+  parentElement.appendChild(bubble);
 }
 
 function createTextBubble(title, content, parentElement) {
@@ -94,6 +133,9 @@ function createTextBubble(title, content, parentElement) {
   const bubbleTitle = document.createElement("h3");
   bubbleTitle.className = "bubble-title";
   bubbleTitle.textContent = title;
+
+  bubble.appendChild(bubbleTitle);
+
 
   // Create an icon element
   const icon = document.createElement("span");
@@ -136,11 +178,3 @@ function createTextBubble(title, content, parentElement) {
     icon.textContent = isOpen ? "−" : "+";
   });
 }
-
-
-
-
-
-
-      
-
