@@ -9,13 +9,15 @@ body {
   max-width: 500px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  background-color: #ECF9FC;
+  /* gap: 10px; */
   
   /* height: 600px; */
 }
 /* Flex Box Bitch */
 #app {
   align-items: center;
+  background-color: white;
 }
 
 #header {
@@ -38,10 +40,11 @@ body {
     rgba(231, 143, 142, 0.4) 
   ); */
   background-color: #ECF9FC;
-  /* border-radius: 10px; */
+  border-radius: 0px 0px 20px 20px;
   backdrop-filter: blur(5px); /* Optional: Adds a frosted glass effect */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional: To add depth */
-
+  /* align-content: center; */
+  align-items:center;
 }
 
 
@@ -50,13 +53,14 @@ body {
   padding: 5px 10px;
   font-size: 20px;
   margin: 30px 20px;
-  min-width: 150px;
-  max-width: 200px;
-  max-height: 40px;
+  min-width: 100px;
+  max-width: 150px;
+  max-height: 90px;
   border-radius: 20px;
   background-color: #628FF2;
+  margin-right: 20px;
 
-  flex: 0 0 100px; 
+  flex: 0 0 auto; 
 }
 
 #results {
@@ -213,6 +217,8 @@ body {
   margin-right: 15px;
   margin-bottom: 15px;
   flex: 0 1 auto;
+  box-shadow: 5px 5px 5px rgba(76, 122, 220, .2);
+
 }
 
 .text-bubble {
@@ -226,6 +232,7 @@ body {
   margin-right: 15px;
   margin-bottom: 15px;
   flex: 0 1 auto;
+  box-shadow: 5px 5px 10px rgba(120, 120, 120, 0.3);
 }
 
 .text-bubble h3 {
@@ -277,15 +284,16 @@ body {
 /* Global Styles */
 
 h1 {
-  font-size: 25px;
+  font-size: 30px;
   /* padding-top: 10px; */
   margin-top: 25px;
   margin-left: 15px;
   max-width: 200px;
+  font-weight: 900;
 
   /* text-align: center; */
-  min-width: 100px;
-  flex: 2 1 auto;
+  min-width: 150px;
+  flex: 1 1 auto;
 }
 
 h2 {
@@ -317,5 +325,13 @@ button:hover {
   border-top-color: #0078D7;
 }
 
+/* #footer {
+  flex-shrink: 0; 
+  background-color: #0078D7;
+  color: white;
+  padding: 15px;
+  text-align: center;
+  width: 100%;
+} */
 
 

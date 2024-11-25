@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Media Bias Analyzer",
-    "version": "1.0",
+    "version": "2.0",
     "description": "Analyzes news articles for media bias and displays a dashboard.",
     "icons": {
       "16": "icons/icon16.png",
