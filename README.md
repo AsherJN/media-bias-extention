@@ -206,7 +206,7 @@ Contributions are welcome! To contribute:
  
 ## License
  
-This project is licensed under the MIT License. See the LICENSE file for details.
+This is all open source, have fun!
  
 ## Acknowledgments
  
@@ -217,7 +217,7 @@ This project is licensed under the MIT License. See the LICENSE file for details
  
 ## Contact
  
-For questions or suggestions, open an issue on the GitHub repository or contact the maintainer at youremail@example.com.
+For questions or suggestions, open an issue on the GitHub repository or contact the maintainer at joshua_nelson@ucsb.edu.
  
 ## Troubleshooting
  
