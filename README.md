@@ -1,11 +1,11 @@
 Media Bias Analyzer Chrome Extension
-%
+ 
 ## Overview
-%
+ 
 The **Media Bias Analyzer** is a Chrome extension that provides a comprehensive and nuanced analysis of online news articles. It leverages a Flask backend and the OpenAI GPT API to evaluate various aspects of an article, helping users understand the underlying bias, context, and framing of the news content they consume. With a modern and refined user interface, the extension presents key insights, making it easier for users to critically assess media coverage.
-%
+ 
 ## Table of Contents
-%
+ 
 - [Features](#features)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
@@ -20,9 +20,9 @@ The **Media Bias Analyzer** is a Chrome extension that provides a comprehensive 
 - [Troubleshooting](#troubleshooting)
 - [Notes](#notes)
 - [Future Enhancements](#future-enhancements)
-%
+ 
 ## Features
-%
+ 
 - **Comprehensive Article Analysis**:  
   Provides an in-depth assessment of media bias and contextual information.
   
@@ -55,34 +55,34 @@ The **Media Bias Analyzer** is a Chrome extension that provides a comprehensive 
   
 - **Easy Integration**:  
   Straightforward setup process, leveraging a Flask backend and OpenAI API.
-%
+ 
 ## Prerequisites
-%
+ 
 - Python 3.7 or higher
 - Google Chrome Browser
 - OpenAI API Key
 - Node.js and npm (optional, for development purposes)
-%
+ 
 ## Installation
-%
+ 
 ### Clone the Repository
-%
+ 
 ```bash
 git clone https://github.com/yourusername/media-bias-analyzer.git
 ```
-%
+ 
 ### Set Up the Backend Server
-%
+ 
 Navigate to the Backend Directory:
 ```bash
 cd media-bias-analyzer/media-bias-backend
 ```
-%
+ 
 Create a Virtual Environment:
 ```bash
 python -m venv venv
 ```
-%
+ 
 Activate the Virtual Environment:
 - On Windows:
   ```bash
@@ -92,58 +92,58 @@ Activate the Virtual Environment:
   ```bash
   source venv/bin/activate
   ```
-%
+ 
 Install Dependencies:
 ```bash
 pip install -r requirements.txt
 ```
-%
+ 
 Set Up Environment Variables:
 - Create a `.env` file in the `media-bias-backend` directory.
 - Add your OpenAI API key to the `.env` file:
   ```
   OPENAI_API_KEY=your-openai-api-key-here
   ```
-%
+ 
 Run the Backend Server:
 ```bash
 python app.py
 ```
 The server should now be running on http://127.0.0.1:5000.
-%
+ 
 ### Set Up the Chrome Extension
-%
+ 
 Navigate to the Extension Directory:
 ```bash
 cd ../media-bias-extension
 ```
-%
+ 
 Load the Extension into Chrome:
 - Open Chrome and go to `chrome://extensions/`.
 - Enable Developer mode.
 - Click on "Load unpacked".
 - Select the `media-bias-extension` folder.
-%
+ 
 Update Extension Permissions (if necessary): Ensure that `manifest.json` has the appropriate permissions and host permissions for the sites you wish to analyze.
-%
+ 
 ## Usage
-%
+ 
 Start the Backend Server:
 ```bash
 cd media-bias-analyzer/media-bias-backend
 source venv/bin/activate
 python app.py
 ```
-%
+ 
 Use the Extension:
 1. Navigate to a news article in Chrome.
 2. Click on the Media Bias Analyzer extension icon.
 3. Click the Analyze button.
 4. Wait for the analysis to complete.
 5. View the results in the extension popup, including the bias score meter, analysis summary, context, content summary, language tone, framing perspective, alternative perspectives, and publisher bias.
-%
+ 
 ## Project Structure
-%
+ 
 ```
 media-bias-analyzer/
 ├── media-bias-backend/
@@ -164,9 +164,9 @@ media-bias-analyzer/
 │       └── icon128.png
 └── README.md
 ```
-%
+ 
 ## Data Returned by the Backend
-%
+ 
 The backend API returns a JSON object containing:
 - `analysis_summary` (<100 words): A subjective overview of the article's bias without referencing numeric scores.
 - `context` (200-500 words): Background information sourced from the internet to understand the article's subject.
@@ -176,25 +176,25 @@ The backend API returns a JSON object containing:
 - `framing_perspective` (<150 words): Summarizes how the article frames its argument.
 - `alternative_perspectives` (<300 words): Assesses if the article includes differing viewpoints and provides additional alternative facts.
 - `publisher_bias` (~50 words): Describes the typical bias of the publisher based on historical patterns.
-%
+ 
 ## Dependencies
-%
+ 
 ### Backend Dependencies (Python)
 - Flask
 - Flask-CORS
 - OpenAI
 - python-dotenv
-%
+ 
 Install these via:
 ```bash
 pip install -r requirements.txt
 ```
-%
+ 
 ### Frontend Dependencies (Chrome Extension)
 None (All dependencies are handled via CDNs or are native to JavaScript).
-%
+ 
 ## Contributing
-%
+ 
 Contributions are welcome! To contribute:
 1. Fork the Repository
 2. Clone Your Fork
@@ -203,41 +203,41 @@ Contributions are welcome! To contribute:
 5. Commit Your Changes
 6. Push to Your Fork
 7. Create a Pull Request
-%
+ 
 ## License
-%
+ 
 This project is licensed under the MIT License. See the LICENSE file for details.
-%
+ 
 ## Acknowledgments
-%
+ 
 - OpenAI: For the GPT API used in text analysis.
 - Flask: For providing the web framework.
 - Chrome Extensions Documentation: For guidance on extension development.
 - Community Contributors: For helping improve the project.
-%
+ 
 ## Contact
-%
+ 
 For questions or suggestions, open an issue on the GitHub repository or contact the maintainer at youremail@example.com.
-%
+ 
 ## Troubleshooting
-%
+ 
 - **CORS Issues**: Ensure that the Flask backend has CORS properly configured.
 - **OpenAI API Errors**: Verify your API key and usage limits.
 - **Extension Not Working**: Reload the extension and check Chrome's Developer Tools console for errors.
-%
+ 
 ## Notes
-%
+ 
 - **Security**: Do not expose your OpenAI API key publicly.
 - **Privacy**: The content analyzed may be sent to OpenAI's servers.
 - **API Usage**: Be mindful of usage policies and costs.
-%
+ 
 ## Future Enhancements
-%
+ 
 1. Deploy Backend Server
 2. Improved UI/UX
 3. Additional Features:
   - Sentiment analysis
   - Historical data tracking
   - User settings and preferences
-%
+ 
 Thank you for using the Media Bias Analyzer! We hope this tool helps you navigate news content with greater awareness and understanding.
