@@ -26,13 +26,28 @@ body {
 
 #header {
   flex-direction: column;
-  
+}
+
+.logo-title-container {
+  display: flex;
+  align-items: center;
+}
+
+.header-logo {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+  margin-left: 15px;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.header-logo:hover {
+  transform: scale(1.1);
 }
 
 #subheader { 
-  
-  margin-left: 15px;
-  
+  margin-left: 0;
 }
 
 #headerButton {
@@ -310,7 +325,7 @@ h1 {
   font-size: 30px;
   /* padding-top: 10px; */
   margin-top: 25px;
-  margin-left: 15px;
+  margin-left: 0;
   max-width: 200px;
   font-weight: 900;
 

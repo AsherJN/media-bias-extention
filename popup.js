@@ -2,6 +2,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Check if running in Chrome extension context
   const isExtension = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
   
+  // Add click event listener to the logo
+  const logoElement = document.querySelector('.header-logo');
+  if (logoElement) {
+    logoElement.addEventListener('click', () => {
+      // Reset the view to initial state
+      document.getElementById("results").style.display = "none";
+      document.getElementById("bias-meter-container").style.display = "none";
+      document.getElementById("loading").style.display = "none";
+      
+      // If in extension context, clear stored results
+      if (isExtension) {
+        chrome.storage.local.remove('analysisResults');
+      }
+    });
+  }
+  
   if (isExtension) {
     // On side panel load, check for saved analysis results and display if present
     chrome.storage.local.get('analysisResults', (data) => {
