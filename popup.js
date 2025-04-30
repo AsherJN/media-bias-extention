@@ -1,55 +1,70 @@
-document.getElementById("analyze-button").addEventListener("click", async () => {
-  const resultsDiv = document.getElementById("results");
-  const loadingDiv = document.getElementById("loading");
-
-  resultsDiv.style.display = "none"; // Hide results
-  loadingDiv.style.display = "block"; // Show spinner
-
-  // Get the current active tab
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
-  // Send a message to the content script to get the article text
-  chrome.tabs.sendMessage(tab.id, { action: "getArticleText" }, async (response) => {
-    if (chrome.runtime.lastError) {
-      loadingDiv.style.display = "none"; // Hide spinner
-      alert("Error: " + chrome.runtime.lastError.message);
-      return;
+document.addEventListener("DOMContentLoaded", () => {
+  // On popup load, check for saved analysis results and display if present
+  chrome.storage.local.get('analysisResults', (data) => {
+    if (data.analysisResults) {
+      displayResults(data.analysisResults);
+      document.getElementById("results").style.display = "block";
     }
+  });
 
-    if (response && response.articleText) {
-      try {
-        // Send the article text to your backend server
-        const res = await fetch("http://127.0.0.1:5000/analyze", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ text: response.articleText }),
-        });
+  document.getElementById("analyze-button").addEventListener("click", async () => {
+    const resultsDiv = document.getElementById("results");
+    const loadingDiv = document.getElementById("loading");
 
-        if (!res.ok) {
-          throw new Error(`Server error: ${res.statusText}`);
-        }
+    // Clear previous results from storage before new analysis
+    chrome.storage.local.remove('analysisResults');
 
-        const analysis = await res.json();
+    resultsDiv.style.display = "none"; // Hide results
+    loadingDiv.style.display = "block"; // Show spinner
 
-        if (analysis.error) {
-          loadingDiv.style.display = "none"; // Hide spinner
-          alert("Error: " + analysis.error);
-        } else {
-          loadingDiv.style.display = "none"; // Hide spinner
-          resultsDiv.style.display = "block"; // Show results
-          // Display the results in the dashboard
-          displayResults(analysis);
-        }
-      } catch (error) {
+    // Get the current active tab
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    // Send a message to the content script to get the article text
+    chrome.tabs.sendMessage(tab.id, { action: "getArticleText" }, async (response) => {
+      if (chrome.runtime.lastError) {
         loadingDiv.style.display = "none"; // Hide spinner
-        alert("Error fetching analysis: " + error.message);
+        alert("Error: " + chrome.runtime.lastError.message);
+        return;
       }
-    } else {
-      loadingDiv.style.display = "none"; // Hide spinner
-      alert("Could not retrieve article text.");
-    }
+
+      if (response && response.articleText) {
+        try {
+          // Send the article text to your backend server
+          const res = await fetch("http://127.0.0.1:5000/analyze", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ text: response.articleText }),
+          });
+
+          if (!res.ok) {
+            throw new Error(`Server error: ${res.statusText}`);
+          }
+
+          const analysis = await res.json();
+
+          if (analysis.error) {
+            loadingDiv.style.display = "none"; // Hide spinner
+            alert("Error: " + analysis.error);
+          } else {
+            loadingDiv.style.display = "none"; // Hide spinner
+            resultsDiv.style.display = "block"; // Show results
+            // Display the results in the dashboard
+            displayResults(analysis);
+            // Save results to chrome.storage.local for persistence
+            chrome.storage.local.set({ analysisResults: analysis });
+          }
+        } catch (error) {
+          loadingDiv.style.display = "none"; // Hide spinner
+          alert("Error fetching analysis: " + error.message);
+        }
+      } else {
+        loadingDiv.style.display = "none"; // Hide spinner
+        alert("Could not retrieve article text.");
+      }
+    });
   });
 });
 

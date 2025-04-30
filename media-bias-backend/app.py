@@ -136,7 +136,7 @@ def analyze():
     try:
         # Call the OpenAI API using the ChatCompletion endpoint
         response = client.chat.completions.create(
-            model="gpt-4o-mini", 
+            model="gpt-4o", 
             messages=[
                 {"role": "system", "content": "You are a highly vigilant internet watchdog who's main priority is to assist users in navigating media bias that may be present in the news/media that people consume. Provide responses in JSON format only."},
                 {"role": "user", "content": prompt}
