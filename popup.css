@@ -6,20 +6,22 @@ body {
   font-family: 'Montserrat', sans-serif;
   color: #333;
   margin: 0;
-  /* padding: 10px; */
-  min-width: 500px;
-  max-width: 500px;
+  width: 100%;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background-color: #ECF9FC;
-  /* gap: 10px; */
-  
-  /* height: 600px; */
+  overflow-y: auto;
 }
-/* Flex Box Bitch */
+/* Flex Box Layout */
 #app {
   align-items: center;
   background-color: white;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
 }
 
 #header {
@@ -36,17 +38,14 @@ body {
 #headerButton {
   display: flex;
   justify-content: space-between;
-  /* background: linear-gradient(to right,
-    rgba(145, 196, 242, 0.4), 
-    rgba(242, 204, 195, 0.4),
-    rgba(231, 143, 142, 0.4) 
-  ); */
   background-color: #ECF9FC;
   border-radius: 0px 0px 20px 20px;
-  backdrop-filter: blur(5px); /* Optional: Adds a frosted glass effect */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional: To add depth */
-  /* align-content: center; */
-  align-items:center;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  align-items: center;
+  width: 100%;
+  padding: 0 10px;
+  box-sizing: border-box;
 }
 
 
@@ -197,44 +196,40 @@ body {
 /* Text Bubble Styles */
 #summary {
   display: flex;
-  flex: 2 0 auto;
+  width: 100%;
   justify-content: center;
+  padding: 0 10px;
+  box-sizing: border-box;
 }
 
 #other-results {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: space-between;
+  flex-direction: column;
+  width: 100%;
+  padding: 0 10px;
+  box-sizing: border-box;
 }
 /* Text Bubble Styles */
 .summary-text-bubble {
   background-color: #EFF6FF;
   border-radius: 10px;
   color: #4C7ADC;
-  min-width: 100px;
-  max-width: 95%;
+  width: 100%;
   padding: 10px;
-  margin-left: 15px;
-  margin-right: 15px;
   margin-bottom: 15px;
-  flex: 0 1 auto;
   box-shadow: 5px 5px 5px rgba(76, 122, 220, .2);
-
+  box-sizing: border-box;
 }
 
 .text-bubble {
   background-color: white;
   border: 1px solid lightgray;
   border-radius: 10px;
-  min-width: 100px;
-  max-width: 95%;
+  width: 100%;
   padding: 10px;
-  margin-left: 15px;
-  margin-right: 15px;
   margin-bottom: 15px;
-  flex: 0 1 auto;
   box-shadow: 5px 5px 10px rgba(120, 120, 120, 0.3);
+  box-sizing: border-box;
 }
 
 .text-bubble h3 {
@@ -250,7 +245,7 @@ body {
 }
 
 .bubble-content.open {
-  max-height: 500px; /* Adjust as needed */
+  max-height: 1000px; /* Increased for side panel */
   transition: max-height 0.5s ease-in;
 }
 
@@ -335,5 +330,3 @@ button:hover {
   text-align: center;
   width: 100%;
 } */
-
-
