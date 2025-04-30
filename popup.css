@@ -48,20 +48,46 @@ body {
   box-sizing: border-box;
 }
 
+#header-controls {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+#settings-icon {
+  cursor: pointer;
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+}
+
+#settings-icon img {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.3s ease;
+  filter: invert(53%) sepia(45%) saturate(1352%) hue-rotate(198deg) brightness(97%) contrast(92%);
+}
+
+#settings-icon:hover img {
+  transform: rotate(30deg);
+  filter: invert(24%) sepia(85%) saturate(1352%) hue-rotate(198deg) brightness(97%) contrast(92%);
+}
+
 
 
 #analyze-button {
   padding: 5px 10px;
   font-size: 20px;
-  margin: 30px 20px;
+  margin: 30px 0;
   min-width: 100px;
-  max-width: 150px;
+  max-width: 120px;
   max-height: 90px;
   border-radius: 20px;
   background-color: #628FF2;
-  margin-right: 20px;
-
-  flex: 0 0 auto; 
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: auto;
 }
 
 #results {
@@ -330,3 +356,42 @@ button:hover {
   text-align: center;
   width: 100%;
 } */
+
+/* Settings Page Styles */
+#settings-page {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ECF9FC;
+  padding: 15px;
+  border-radius: 0px 0px 20px 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#settings-close {
+  font-size: 24px;
+  cursor: pointer;
+  color: #628FF2;
+}
+
+#settings-close:hover {
+  color: #005A9E;
+}
+
+.settings-content {
+  padding: 20px;
+  flex-grow: 1;
+}

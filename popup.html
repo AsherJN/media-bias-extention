@@ -16,8 +16,13 @@
         <h1>Media Bias Analyzer</h1>
         <p id="subheader">AI-Powered Content Analysis</p>
       </div>
-    
-      <button id="analyze-button">Analyze</button>
+      
+      <div id="header-controls">
+        <div id="settings-icon">
+          <img src="icons/settings.svg" alt="Settings">
+        </div>
+        <button id="analyze-button">Analyze</button>
+      </div>
     </div>
     <!-- Loading Spinner -->
     <div id="loading" class="spinner" style="display: none;"></div>
@@ -52,9 +57,18 @@
     <!-- <div id="footer">
     </div> -->
   </div>
+  
+  <!-- Settings Page -->
+  <div id="settings-page" style="display: none;">
+    <div class="settings-header">
+      <h2>Settings</h2>
+      <div id="settings-close">×</div>
+    </div>
+    <div class="settings-content">
+      <!-- Settings content will be added in a future task -->
+      <p>Settings options will be available soon.</p>
+    </div>
+  </div>
   <script src="popup.js"></script>
 </body>
 </html>
-
-
-

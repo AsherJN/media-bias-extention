@@ -1,27 +1,66 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  // On side panel load, check for saved analysis results and display if present
-  chrome.storage.local.get('analysisResults', (data) => {
-    if (data.analysisResults) {
-      displayResults(data.analysisResults);
-      document.getElementById("results").style.display = "block";
-    }
-  });
+  // Check if running in Chrome extension context
+  const isExtension = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
   
-  // Get the current active tab when the side panel is opened
-  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-  if (tabs && tabs.length > 0) {
-    console.log("Side panel opened for tab:", tabs[0].url);
+  if (isExtension) {
+    // On side panel load, check for saved analysis results and display if present
+    chrome.storage.local.get('analysisResults', (data) => {
+      if (data.analysisResults) {
+        displayResults(data.analysisResults);
+        document.getElementById("results").style.display = "block";
+      }
+    });
+    
+    // Get the current active tab when the side panel is opened
+    try {
+      const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tabs && tabs.length > 0) {
+        console.log("Side panel opened for tab:", tabs[0].url);
+      }
+    } catch (error) {
+      console.log("Error querying tabs:", error);
+    }
   }
+
+  // Settings toggle functionality
+  const settingsIcon = document.getElementById("settings-icon");
+  const settingsPage = document.getElementById("settings-page");
+  const settingsClose = document.getElementById("settings-close");
+
+  // Toggle settings page when settings icon is clicked
+  settingsIcon.addEventListener("click", () => {
+    settingsPage.style.display = "flex";
+  });
+
+  // Close settings page when close button is clicked
+  settingsClose.addEventListener("click", () => {
+    settingsPage.style.display = "none";
+  });
 
   document.getElementById("analyze-button").addEventListener("click", async () => {
     const resultsDiv = document.getElementById("results");
     const loadingDiv = document.getElementById("loading");
-
-    // Clear previous results from storage before new analysis
-    chrome.storage.local.remove('analysisResults');
+    
+    // Check if running in Chrome extension context
+    const isExtension = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
+    
+    if (isExtension) {
+      // Clear previous results from storage before new analysis
+      chrome.storage.local.remove('analysisResults');
+    }
 
     resultsDiv.style.display = "none"; // Hide results
     loadingDiv.style.display = "block"; // Show spinner
+
+    // For testing outside of the extension
+    if (!isExtension) {
+      // Simulate loading for 2 seconds
+      setTimeout(() => {
+        loadingDiv.style.display = "none";
+        alert("This feature requires the Chrome extension environment to work properly.");
+      }, 2000);
+      return;
+    }
 
     try {
       // Get the current active tab - for side panel, we need to get the tab the panel is attached to
