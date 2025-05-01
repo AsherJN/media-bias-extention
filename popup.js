@@ -53,6 +53,269 @@ document.addEventListener("DOMContentLoaded", async () => {
     settingsPage.style.display = "none";
   });
 
+  // History page functionality
+  const historyButton = document.getElementById("history-button");
+  const historyPage = document.getElementById("history-page");
+  const historyBack = document.getElementById("history-back");
+
+  // Show history page when history button is clicked
+  historyButton.addEventListener("click", () => {
+    historyPage.style.display = "flex";
+    displayHistoryEntries();
+  });
+
+  // Return to settings page when back button is clicked
+  historyBack.addEventListener("click", () => {
+    historyPage.style.display = "none";
+  });
+  
+  // History menu functionality
+  const historyMenu = document.getElementById("history-menu");
+  const historyMenuDropdown = document.getElementById("history-menu-dropdown");
+  
+  // Toggle history menu dropdown when menu icon is clicked
+  historyMenu.addEventListener("click", (e) => {
+    e.stopPropagation();
+    historyMenuDropdown.style.display = historyMenuDropdown.style.display === 'none' ? 'block' : 'none';
+  });
+  
+  // Clear history when clear option is clicked
+  document.getElementById("clear-history").addEventListener("click", () => {
+    clearAllHistory();
+  });
+  
+  // Close dropdown when clicking elsewhere
+  document.addEventListener("click", () => {
+    historyMenuDropdown.style.display = 'none';
+    
+    // Also close any entry option dropdowns
+    document.querySelectorAll('.entry-dropdown').forEach(dropdown => {
+      dropdown.style.display = 'none';
+    });
+  });
+
+  // Function to display history entries
+  function displayHistoryEntries() {
+    const historyContent = document.querySelector('.history-content');
+    
+    // Clear existing content
+    historyContent.innerHTML = '';
+    
+    // Check if running in Chrome extension context
+    const isExtension = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
+    
+    if (!isExtension) {
+      historyContent.innerHTML = '<p>History feature requires the Chrome extension environment to work properly.</p>';
+      return;
+    }
+    
+    // Get history from storage
+    chrome.storage.local.get('analysisHistory', (data) => {
+      const history = data.analysisHistory || [];
+      
+      if (history.length === 0) {
+        historyContent.innerHTML = '<p>No analysis history yet.</p>';
+        return;
+      }
+      
+      // Create container for history entries
+      const entriesContainer = document.createElement('div');
+      entriesContainer.className = 'history-entries';
+      
+      // Create each history entry
+      history.forEach(entry => {
+        const entryElement = createHistoryEntryElement(entry);
+        entriesContainer.appendChild(entryElement);
+      });
+      
+      historyContent.appendChild(entriesContainer);
+    });
+  }
+
+  // Function to create a history entry element
+  function createHistoryEntryElement(entry) {
+    // Create main container - change from <a> to <div> to prevent navigation on entire entry
+    const entryElement = document.createElement('div');
+    entryElement.className = 'history-entry';
+    
+    // Create favicon container
+    const faviconContainer = document.createElement('div');
+    faviconContainer.className = 'entry-favicon';
+    
+    // Create favicon image
+    const favicon = document.createElement('img');
+    favicon.src = entry.favicon;
+    favicon.alt = 'Site Icon';
+    favicon.onerror = function() {
+      // Fallback if favicon fails to load
+      this.src = 'icons/icon16.png';
+    };
+    
+    faviconContainer.appendChild(favicon);
+    
+    // Create content container
+    const contentContainer = document.createElement('div');
+    contentContainer.className = 'entry-content';
+    
+    // Create title (make it a link)
+    const titleLink = document.createElement('a');
+    titleLink.href = entry.url;
+    titleLink.target = '_blank';
+    titleLink.className = 'entry-title-link';
+    
+    const title = document.createElement('div');
+    title.className = 'entry-title';
+    title.textContent = entry.title;
+    
+    titleLink.appendChild(title);
+    
+    // Create date
+    const date = document.createElement('div');
+    date.className = 'entry-date';
+    date.textContent = new Date(entry.timestamp).toLocaleString();
+    
+    // Create options menu
+    const optionsMenu = document.createElement('div');
+    optionsMenu.className = 'entry-options';
+    
+    const optionsIcon = document.createElement('img');
+    optionsIcon.src = 'icons/three-dots-menu.svg';
+    optionsIcon.alt = 'Options';
+    
+    optionsMenu.appendChild(optionsIcon);
+    
+    // Create dropdown for entry options
+    const optionsDropdown = document.createElement('div');
+    optionsDropdown.className = 'entry-dropdown';
+    optionsDropdown.style.display = 'none';
+    
+    const deleteOption = document.createElement('div');
+    deleteOption.className = 'entry-option';
+    deleteOption.textContent = 'Delete';
+    deleteOption.dataset.id = entry.id;
+    
+    optionsDropdown.appendChild(deleteOption);
+    
+    // Assemble the elements
+    contentContainer.appendChild(titleLink);
+    contentContainer.appendChild(date);
+    
+    entryElement.appendChild(faviconContainer);
+    entryElement.appendChild(contentContainer);
+    entryElement.appendChild(optionsMenu);
+    entryElement.appendChild(optionsDropdown);
+    
+    // Add event listeners
+    optionsMenu.addEventListener('click', function(e) {
+      e.stopPropagation();
+      // Close any other open dropdowns
+      document.querySelectorAll('.entry-dropdown').forEach(dropdown => {
+        if (dropdown !== optionsDropdown) {
+          dropdown.style.display = 'none';
+        }
+      });
+      // Toggle this dropdown
+      optionsDropdown.style.display = optionsDropdown.style.display === 'none' ? 'block' : 'none';
+    });
+    
+    deleteOption.addEventListener('click', function(e) {
+      e.stopPropagation();
+      deleteHistoryEntry(entry.id);
+    });
+    
+    // Close dropdown when clicking elsewhere
+    document.addEventListener('click', function() {
+      optionsDropdown.style.display = 'none';
+    });
+    
+    return entryElement;
+  }
+
+  // Function to delete a single history entry
+  function deleteHistoryEntry(entryId) {
+    // Check if running in Chrome extension context
+    const isExtension = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
+    
+    if (!isExtension) {
+      console.log("Cannot delete history entry: Extension context not available");
+      return;
+    }
+    
+    chrome.storage.local.get('analysisHistory', (data) => {
+      const history = data.analysisHistory || [];
+      
+      // Filter out the entry with the matching ID
+      const updatedHistory = history.filter(entry => entry.id !== entryId);
+      
+      // Save the updated history back to storage
+      chrome.storage.local.set({ analysisHistory: updatedHistory }, () => {
+        // Refresh the history display
+        displayHistoryEntries();
+      });
+    });
+  }
+
+  // Function to clear all history
+  function clearAllHistory() {
+    // Check if running in Chrome extension context
+    const isExtension = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
+    
+    if (!isExtension) {
+      console.log("Cannot clear history: Extension context not available");
+      return;
+    }
+    
+    // Confirm with the user before clearing
+    if (confirm("Are you sure you want to clear all history?")) {
+      // Clear the history by setting an empty array
+      chrome.storage.local.set({ analysisHistory: [] }, () => {
+        // Refresh the history display
+        displayHistoryEntries();
+        // Hide the dropdown
+        document.getElementById('history-menu-dropdown').style.display = 'none';
+      });
+    }
+  }
+
+  // Function to generate a unique ID
+  function generateUniqueId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  }
+
+  // Function to save an entry to history
+  function saveToHistory(analysis, articleInfo) {
+    // Check if running in Chrome extension context
+    const isExtension = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
+    
+    if (!isExtension) {
+      console.log("Cannot save to history: Extension context not available");
+      return;
+    }
+    
+    chrome.storage.local.get('analysisHistory', (data) => {
+      const history = data.analysisHistory || [];
+      
+      // Create new history entry
+      const historyEntry = {
+        id: generateUniqueId(),
+        title: articleInfo.title,
+        url: articleInfo.url,
+        favicon: articleInfo.favicon,
+        timestamp: Date.now(),
+        biasScore: analysis.bias_score
+      };
+      
+      // Add to beginning of array (newest first)
+      history.unshift(historyEntry);
+      
+      // Limit history to 50 entries to prevent excessive storage use
+      const limitedHistory = history.slice(0, 50);
+      
+      // Save back to storage
+      chrome.storage.local.set({ analysisHistory: limitedHistory });
+    });
+  }
+
   document.getElementById("analyze-button").addEventListener("click", async () => {
     const resultsDiv = document.getElementById("results");
     const loadingDiv = document.getElementById("loading");
@@ -120,6 +383,11 @@ document.addEventListener("DOMContentLoaded", async () => {
               displayResults(analysis);
               // Save results to chrome.storage.local for persistence
               chrome.storage.local.set({ analysisResults: analysis });
+              
+              // Save to history if article info is available
+              if (response.articleInfo) {
+                saveToHistory(analysis, response.articleInfo);
+              }
             }
           } catch (error) {
             loadingDiv.style.display = "none"; // Hide spinner

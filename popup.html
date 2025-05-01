@@ -71,6 +71,27 @@
     <div class="settings-content">
       <!-- Settings content will be added in a future task -->
       <p>Settings options will be available soon.</p>
+      <button id="history-button">History</button>
+    </div>
+  </div>
+  
+  <!-- History Page -->
+  <div id="history-page" style="display: none;">
+    <div class="history-header">
+      <h2>History</h2>
+      <div class="header-controls">
+        <div id="history-menu">
+          <img src="icons/three-dots-menu.svg" alt="Menu">
+        </div>
+        <div id="history-back">←</div>
+      </div>
+    </div>
+    <!-- Dropdown menu for the history options -->
+    <div id="history-menu-dropdown" class="dropdown-menu" style="display: none;">
+      <div class="dropdown-item" id="clear-history">Clear History</div>
+    </div>
+    <div class="history-content">
+      <p>Your analysis history will appear here.</p>
     </div>
   </div>
   <script src="popup.js"></script>

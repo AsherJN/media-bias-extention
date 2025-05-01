@@ -1,9 +1,13 @@
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "getArticleText") {
-      // Extract the article text from the page
+      // Extract the article text and info from the page
       const articleText = extractArticleText();
-      sendResponse({ articleText });
+      const articleInfo = extractArticleInfo();
+      sendResponse({ 
+        articleText,
+        articleInfo
+      });
     }
   });
   
@@ -15,6 +19,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       articleText += p.innerText + "\n";
     });
     return articleText;
+  }
+
+  function extractArticleInfo() {
+    return {
+      title: document.title,
+      url: window.location.href,
+      favicon: getFaviconUrl()
+    };
+  }
+
+  function getFaviconUrl() {
+    // Try to get the favicon from link tags
+    const linkIcon = document.querySelector('link[rel="icon"], link[rel="shortcut icon"]');
+    if (linkIcon) return linkIcon.href;
+    
+    // Fallback to default favicon location
+    return new URL('/favicon.ico', window.location.origin).href;
   }
   
   chrome.runtime.sendMessage({ action: "analyzePage" }, response => {
