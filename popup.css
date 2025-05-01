@@ -61,6 +61,11 @@ body {
   width: 100%;
   padding: 0 10px;
   box-sizing: border-box;
+  /* Fixed positioning properties */
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 5;
 }
 
 #header-controls {
@@ -107,6 +112,8 @@ body {
 
 #results {
   margin-top: 20px;
+  /* Additional padding to account for the fixed header */
+  padding-top: 125px; /* Increased to add more space between header and dashboard elements */
 }
 
 /* Loading Spinner Styles */
@@ -115,6 +122,8 @@ body {
   width: 40px;
   height: 40px;
   position: relative;
+  z-index: 6; /* Higher than the header's z-index of 5 */
+  margin-top: 180px; /* Further increased to add more distance from the header */
 }
 
 .spinner::after {
@@ -140,28 +149,6 @@ body {
 
 /* ... */
 
-/* Results Styles */
-#results {
-  margin-top: 20px;
-}
-
-.result-item {
-  margin-bottom: 15px;
-}
-
-.result-title {
-  font-weight: 500;
-  margin-bottom: 5px;
-}
-
-.result-content {
-  margin-left: 10px;
-}
-
-#results ul {
-  list-style-type: disc;
-  margin-left: 20px;
-}
 
 #error-message {
   color: red;
@@ -363,14 +350,6 @@ button:hover {
   border-top-color: #0078D7;
 }
 
-/* #footer {
-  flex-shrink: 0; 
-  background-color: #0078D7;
-  color: white;
-  padding: 15px;
-  text-align: center;
-  width: 100%;
-} */
 
 /* Settings Page Styles */
 #settings-page {
