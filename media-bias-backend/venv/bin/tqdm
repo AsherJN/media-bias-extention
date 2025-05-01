@@ -1,4 +1,4 @@
-#!/Users/joshnelson/repos/media-bias-extention/media-bias-backend/venv/bin/python3
+#!/Users/joshnelson/repos/media-bias-extention/media-bias-backend/venv/bin/python3.13
 # -*- coding: utf-8 -*-
 import re
 import sys

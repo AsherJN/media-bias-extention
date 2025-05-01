@@ -115,11 +115,29 @@ Output Example:
 
 # Initialize the Flask app
 app = Flask(__name__)
-CORS(app, resources={r"/analyze": {"origins": "*"}})
+CORS(app, resources={r"/analyze": {"origins": "*"}, r"/get-prompt": {"origins": "*"}})
 
 # Set up OpenAI client
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+@app.route('/get-prompt', methods=['GET'])
+def get_prompt():
+    """
+    Returns the prompt template used for generating bias analysis.
+    This endpoint allows users to view the exact prompt that is used
+    when analyzing articles for bias.
+    """
+    try:
+        # Generate a sample prompt with placeholder text
+        sample_prompt = generate_prompt("[Article text would appear here]")
+        
+        # Return the prompt as JSON
+        return jsonify({
+            'prompt': sample_prompt
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
@@ -162,5 +180,3 @@ def analyze():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
