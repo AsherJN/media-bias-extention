@@ -1,9 +1,3 @@
-// Listen for messages from the popup script
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === "analyzePage") {
-    // Handle the action
-  }
-});
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "getArticleText") {
@@ -30,4 +24,3 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       console.log("Message sent successfully");
     }
   });
-  

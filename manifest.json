@@ -35,11 +35,5 @@
         "matches": ["<all_urls>"],
         "js": ["contentScript.js"]
       }
-    ],
-    "web_accessible_resources": [
-      {
-        "resources": ["chart.js"],
-        "matches": ["<all_urls>"]
-      }
     ]
   }
