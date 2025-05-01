@@ -11,19 +11,27 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("bias-meter-container").style.display = "none";
       document.getElementById("loading").style.display = "none";
       
+      // Hide notification banner
+      const notificationBanner = document.getElementById("notification-banner");
+      notificationBanner.style.display = "none";
+      notificationBanner.style.opacity = "0";
+      
       // If in extension context, clear stored results
       if (isExtension) {
-        chrome.storage.local.remove('analysisResults');
+        chrome.storage.local.remove(['analysisResults', 'analyzedUrl']);
       }
     });
   }
   
   if (isExtension) {
     // On side panel load, check for saved analysis results and display if present
-    chrome.storage.local.get('analysisResults', (data) => {
+    chrome.storage.local.get(['analysisResults', 'analyzedUrl'], (data) => {
       if (data.analysisResults) {
         displayResults(data.analysisResults);
         document.getElementById("results").style.display = "block";
+        
+        // Check if the current URL matches the analyzed URL
+        checkUrlAndShowNotification();
       }
     });
     
@@ -32,10 +40,50 @@ document.addEventListener("DOMContentLoaded", async () => {
       const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tabs && tabs.length > 0) {
         console.log("Side panel opened for tab:", tabs[0].url);
+        
+        // Check if the current URL matches the analyzed URL
+        checkUrlAndShowNotification();
       }
     } catch (error) {
       console.log("Error querying tabs:", error);
     }
+    
+    // Listen for tab updates to check URL changes
+    chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+      if (changeInfo.status === 'complete') {
+        checkUrlAndShowNotification();
+      }
+    });
+  }
+  
+  // Function to check if current URL matches the analyzed URL and show notification if needed
+  function checkUrlAndShowNotification() {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs && tabs.length > 0) {
+        const currentUrl = tabs[0].url;
+        
+        chrome.storage.local.get(['analyzedUrl', 'analysisResults'], (data) => {
+          const notificationBanner = document.getElementById('notification-banner');
+          const resultsContainer = document.getElementById('results');
+          
+          // If we have analysis results but URL doesn't match, show notification
+          if (data.analysisResults && data.analyzedUrl && data.analyzedUrl !== currentUrl) {
+            notificationBanner.style.display = 'block';
+            notificationBanner.style.opacity = '1';
+            
+            // Adjust the results container padding to make room for the banner
+            // Increased to account for banner height plus spacing
+            resultsContainer.style.paddingTop = '190px';
+          } else {
+            notificationBanner.style.display = 'none';
+            notificationBanner.style.opacity = '0';
+            
+            // Reset padding when banner is hidden
+            resultsContainer.style.paddingTop = '125px';
+          }
+        });
+      }
+    });
   }
 
   // Settings toggle functionality
@@ -68,6 +116,60 @@ document.addEventListener("DOMContentLoaded", async () => {
   historyBack.addEventListener("click", () => {
     historyPage.style.display = "none";
   });
+  
+  // Prompt view page functionality
+  const viewPromptButton = document.getElementById("view-prompt-button");
+  const promptViewPage = document.getElementById("prompt-view-page");
+  const promptBack = document.getElementById("prompt-back");
+  
+  // Show prompt view page when view prompt button is clicked
+  viewPromptButton.addEventListener("click", () => {
+    promptViewPage.style.display = "flex";
+    fetchAndDisplayPrompt();
+  });
+  
+  // Return to settings page when back button is clicked
+  promptBack.addEventListener("click", () => {
+    promptViewPage.style.display = "none";
+  });
+  
+  // Function to fetch and display the AI bias prompt
+  async function fetchAndDisplayPrompt() {
+    const promptTextContainer = document.getElementById("prompt-text");
+    
+    try {
+      // Fetch the prompt from the backend
+      const response = await fetch("http://127.0.0.1:5000/get-prompt");
+      
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        promptTextContainer.textContent = `Error: ${data.error}`;
+      } else {
+        // Display the prompt in the container
+        promptTextContainer.textContent = data.prompt;
+      }
+    } catch (error) {
+      // If there's an error (e.g., server not running), display a fallback prompt
+      const fallbackPrompt = `
+Role: You are a highly vigilant internet watchdog who's main priority is to assist users in navigating media bias that may be present in the news/media that people consume.
+
+Context: This Media Bias Analysis Rubric will help equip you to objectively evaluate bias in news articles by focusing on Overall Bias Score, Language and Tone, Framing and Perspective, and Alternative Perspectives. By systematically assessing each of these areas, users can assign a Composite Bias Score, enabling a clearer, more informed understanding of an article's ideological lean and balance.
+
+1. Overall Bias Score
+Definition: This is a numerical representation of the article's ideological lean, from -5 (very liberal) to +5 (very conservative), with 0 representing a neutral or moderate stance. This score should be informed by patterns in language, framing, and sourcing.
+...
+
+[This is a preview of the AI prompt used for bias analysis. The full prompt contains detailed instructions for analyzing article bias across multiple dimensions.]
+`;
+      promptTextContainer.textContent = fallbackPrompt;
+      console.error("Error fetching prompt:", error);
+    }
+  }
   
   // History menu functionality
   const historyMenu = document.getElementById("history-menu");
@@ -382,7 +484,18 @@ document.addEventListener("DOMContentLoaded", async () => {
               // Display the results in the dashboard
               displayResults(analysis);
               // Save results to chrome.storage.local for persistence
-              chrome.storage.local.set({ analysisResults: analysis });
+              chrome.storage.local.set({ 
+                analysisResults: analysis,
+                analyzedUrl: tab.url // Store the current URL with the analysis results
+              });
+              
+              // Hide notification banner if it's visible
+              const notificationBanner = document.getElementById("notification-banner");
+              notificationBanner.style.display = "none";
+              notificationBanner.style.opacity = "0";
+              
+              // Reset padding when banner is hidden
+              document.getElementById("results").style.paddingTop = "125px";
               
               // Save to history if article info is available
               if (response.articleInfo) {

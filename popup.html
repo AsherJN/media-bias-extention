@@ -31,6 +31,10 @@
     </div>
     <!-- Loading Spinner -->
     <div id="loading" class="spinner" style="display: none;"></div>
+    <!-- Notification Banner -->
+    <div id="notification-banner" style="display: none;">
+      <p>You've navigated to a new page. Click "Analyze" to update the dashboard.</p>
+    </div>
     <!-- Results Container -->
     <div id="results">
       <!-- Bias Score Meter -->
@@ -71,6 +75,7 @@
     <div class="settings-content">
       <!-- Settings content will be added in a future task -->
       <p>Settings options will be available soon.</p>
+      <button id="view-prompt-button">View AI Bias Prompt</button>
       <button id="history-button">History</button>
     </div>
   </div>
@@ -92,6 +97,17 @@
     </div>
     <div class="history-content">
       <p>Your analysis history will appear here.</p>
+    </div>
+  </div>
+  <!-- Prompt View Page -->
+  <div id="prompt-view-page" style="display: none;">
+    <div class="prompt-header">
+      <h2>AI Bias Prompt</h2>
+      <div id="prompt-back">←</div>
+    </div>
+    <div class="prompt-content">
+      <p>The AI prompt used for bias analysis will appear here.</p>
+      <div id="prompt-text" class="prompt-text-container"></div>
     </div>
   </div>
   <script src="popup.js"></script>
