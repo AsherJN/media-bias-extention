@@ -133,40 +133,62 @@ document.addEventListener("DOMContentLoaded", async () => {
     promptViewPage.style.display = "none";
   });
   
+  // Function to get the stored prompt from Chrome storage
+  async function getStoredPrompt() {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(['biasAnalysisPrompt'], (data) => {
+        if (data.biasAnalysisPrompt) {
+          resolve(data.biasAnalysisPrompt);
+        } else {
+          // If prompt not found in storage, fetch from backend as fallback
+          fetchPromptFromBackend()
+            .then(prompt => {
+              // Store the fetched prompt for future use
+              chrome.storage.local.set({ biasAnalysisPrompt: prompt });
+              resolve(prompt);
+            })
+            .catch(error => {
+              console.error("Error fetching prompt from backend:", error);
+              // Use a minimal fallback prompt if all else fails
+              const fallbackPrompt = `
+Role: You are a highly vigilant internet watchdog who's main priority is to assist users in navigating media bias that may be present in the news/media that people consume.
+
+[This is a preview of the AI prompt used for bias analysis. The full prompt contains detailed instructions for analyzing article bias across multiple dimensions.]
+`;
+              resolve(fallbackPrompt);
+            });
+        }
+      });
+    });
+  }
+
+  // Function to fetch the prompt from the backend (used as fallback)
+  async function fetchPromptFromBackend() {
+    const response = await fetch("http://127.0.0.1:5000/get-prompt");
+    
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    
+    return data.prompt;
+  }
+
   // Function to fetch and display the AI bias prompt
   async function fetchAndDisplayPrompt() {
     const promptTextContainer = document.getElementById("prompt-text");
     
     try {
-      // Fetch the prompt from the backend
-      const response = await fetch("http://127.0.0.1:5000/get-prompt");
-      
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data.error) {
-        promptTextContainer.textContent = `Error: ${data.error}`;
-      } else {
-        // Display the prompt in the container
-        promptTextContainer.textContent = data.prompt;
-      }
+      // Get prompt from Chrome storage
+      const prompt = await getStoredPrompt();
+      promptTextContainer.textContent = prompt;
     } catch (error) {
-      // If there's an error (e.g., server not running), display a fallback prompt
-      const fallbackPrompt = `
-Role: You are a highly vigilant internet watchdog who's main priority is to assist users in navigating media bias that may be present in the news/media that people consume.
-
-Context: This Media Bias Analysis Rubric will help equip you to objectively evaluate bias in news articles by focusing on Overall Bias Score, Language and Tone, Framing and Perspective, and Alternative Perspectives. By systematically assessing each of these areas, users can assign a Composite Bias Score, enabling a clearer, more informed understanding of an article's ideological lean and balance.
-
-1. Overall Bias Score
-Definition: This is a numerical representation of the article's ideological lean, from -5 (very liberal) to +5 (very conservative), with 0 representing a neutral or moderate stance. This score should be informed by patterns in language, framing, and sourcing.
-...
-
-[This is a preview of the AI prompt used for bias analysis. The full prompt contains detailed instructions for analyzing article bias across multiple dimensions.]
-`;
-      promptTextContainer.textContent = fallbackPrompt;
+      promptTextContainer.textContent = "Error loading prompt: " + error.message;
       console.error("Error fetching prompt:", error);
     }
   }
@@ -460,13 +482,19 @@ Definition: This is a numerical representation of the article's ideological lean
 
         if (response && response.articleText) {
           try {
-            // Send the article text to your backend server
+            // Get the prompt from Chrome storage
+            const prompt = await getStoredPrompt();
+            
+            // Send the article text AND prompt to your backend server
             const res = await fetch("http://127.0.0.1:5000/analyze", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({ text: response.articleText }),
+              body: JSON.stringify({ 
+                text: response.articleText,
+                prompt: prompt
+              }),
             });
 
             if (!res.ok) {

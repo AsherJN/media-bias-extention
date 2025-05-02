@@ -1,4 +1,14 @@
-from dotenv import load_dotenv
+# Try to import dotenv, but continue if it's not available
+try:
+    from dotenv import load_dotenv
+    # Load environment variables from .env file
+    load_dotenv()
+except ImportError:
+    print("Warning: python-dotenv not installed. Using environment variables directly.")
+    # Define a no-op function if dotenv is not available
+    def load_dotenv():
+        pass
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from openai import OpenAI
@@ -148,8 +158,13 @@ def analyze():
 
     article_text = data['text']
     
-    # Create the prompt for OpenAI
-    prompt = generate_prompt(article_text)
+    # Use provided prompt if available, otherwise generate one
+    if 'prompt' in data and data['prompt']:
+        # Replace {article_text} placeholder with the actual article text
+        prompt = data['prompt'].replace("{article_text}", article_text)
+    else:
+        # Fallback to generating the default prompt
+        prompt = generate_prompt(article_text)
 
     try:
         # Call the OpenAI API using the ChatCompletion endpoint
