@@ -9,7 +9,8 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - **Backend API**: ✅ Complete
 - **Content Extraction**: ⚠️ Basic implementation
 - **History Feature**: ✅ Complete
-- **Settings Feature**: 🚧 Framework only
+- **Settings Feature**: ✅ Client-side prompt storage and retrieval implemented
+- **Documentation**: ✅ Comprehensive README with architecture, features, and roadmap
 - **Deployment**: 🚧 Local development only
 
 ## What Works
@@ -24,12 +25,16 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - **Bias Meter**: Visual representation of bias with gradient and arrow indicator
 - **Expandable Sections**: Collapsible content areas for each analysis component
 - **Loading Indicator**: Spinner shown during analysis processing
+- **Progress Updates**: Text prompts fade in/out at key analysis milestones alongside the loading spinner
+- **UI Spacing**: Consistent spacing between header and bias score div for improved visual alignment
 - **Responsive Layout**: UI adapts to the side panel dimensions
+- **Customizable Prompt Editor**: Separate editable fields for each prompt section, auto-save, reset-to-default, and placeholder preservation
 
 ### Data Management
 - **History Tracking**: Previously analyzed articles are saved and can be revisited
 - **Local Storage**: Analysis results persist between browser sessions
 - **History Management**: Users can delete individual entries or clear all history
+- **Documentation**: Comprehensive README with installation, usage, and troubleshooting guides
 
 ### Backend Integration
 - **Flask API**: Backend server processes analysis requests

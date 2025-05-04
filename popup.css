@@ -134,10 +134,21 @@ body {
 }
 
 #results {
-  margin-top: 20px;
+  /* margin-top: 0px; */
   /* Additional padding to account for the fixed header */
-  padding-top: 125px; /* Increased to add more space between header and dashboard elements */
+  /* padding-top: 0px;  */
+  /* Increased to add more space between header and dashboard elements */
   /* This padding will be adjusted dynamically when the notification banner is shown */
+}
+
+/* Loading Container and Progress Updates Styles */
+#loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 150px; /* Distance from the header */
+  z-index: 6; /* Higher than the header's z-index of 5 */
+  width: 100%;
 }
 
 /* Loading Spinner Styles */
@@ -146,8 +157,30 @@ body {
   width: 40px;
   height: 40px;
   position: relative;
-  z-index: 6; /* Higher than the header's z-index of 5 */
-  margin-top: 180px; /* Further increased to add more distance from the header */
+}
+
+#progress-updates-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+  width: 100%;
+}
+
+#progress-update-text {
+  font-size: 16px;
+  color: #628FF2;
+  text-align: center;
+  animation: fadeInOut 2s infinite;
+  font-weight: 500;
+  max-width: 80%;
+  transition: opacity 0.3s ease;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
 }
 
 .spinner::after {
@@ -425,7 +458,7 @@ button:hover {
 }
 
 /* History Page Styles */
-#history-page, #prompt-view-page {
+#history-page, #prompt-view-page, #advanced-settings-page {
   position: absolute;
   top: 0;
   left: 0;
@@ -436,6 +469,11 @@ button:hover {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+}
+
+/* Advanced Settings Page has higher z-index to appear above prompt view page */
+#advanced-settings-page {
+  z-index: 12;
 }
 
 .history-header, .prompt-header {
@@ -522,6 +560,166 @@ button:hover {
   line-height: 1.5;
   max-height: 500px;
   overflow-y: auto;
+}
+
+/* Prompt Section Styles */
+.prompt-section {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 15px;
+}
+
+.prompt-section h3 {
+  margin-bottom: 10px;
+  color: #4A6FBF;
+}
+
+.prompt-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  background-color: #f8f9fa;
+}
+
+.prompt-textarea:focus {
+  outline: none;
+  border-color: #628FF2;
+  box-shadow: 0 0 0 2px rgba(98, 143, 242, 0.2);
+}
+
+.prompt-readonly {
+  background-color: #f0f0f0;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  max-height: 150px;
+  overflow-y: auto;
+  color: #666;
+}
+
+/* Full Prompt Textarea Styles */
+.full-prompt-container {
+  margin-bottom: 20px;
+}
+
+.full-prompt-textarea {
+  width: 100%;
+  min-height: 400px;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+  background-color: #f8f9fa;
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+.full-prompt-textarea:focus {
+  outline: none;
+  border-color: #628FF2;
+  box-shadow: 0 0 0 2px rgba(98, 143, 242, 0.2);
+}
+
+#advanced-settings-back {
+  font-size: 24px;
+  cursor: pointer;
+  color: #628FF2;
+}
+
+#advanced-settings-back:hover {
+  color: #005A9E;
+}
+
+.prompt-info-box, .prompt-warning-box {
+  background-color: #e8f4ff;
+  border: 1px solid #b8daff;
+  border-radius: 8px;
+  padding: 12px 15px;
+  margin-bottom: 20px;
+  color: #0056b3;
+}
+
+.prompt-warning-box {
+  background-color: #fff3e0;
+  border-color: #ffcc80;
+  color: #e65100;
+}
+
+.prompt-info-box p, .prompt-warning-box p {
+  margin: 8px 0;
+}
+
+.prompt-info-box ul, .prompt-warning-box ul {
+  margin: 8px 0;
+  padding-left: 25px;
+}
+
+.prompt-info-box li, .prompt-warning-box li {
+  margin-bottom: 5px;
+}
+
+.prompt-info-box code, .prompt-warning-box code {
+  background-color: #f0f7ff;
+  padding: 2px 5px;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.prompt-warning-box code {
+  background-color: #fff8e1;
+}
+
+.prompt-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.prompt-actions.top-actions {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+  margin-bottom: 20px;
+}
+
+.prompt-actions.top-actions button {
+  width: 100%;
+}
+
+.prompt-button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 48%;
+}
+
+.prompt-button.secondary {
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ccc;
+}
+
+.prompt-button.secondary:hover {
+  background-color: #e0e0e0;
 }
 
 /* View Prompt Button in Settings */

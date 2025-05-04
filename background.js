@@ -106,3 +106,12 @@ chrome.action.onClicked.addListener((tab) => {
   // Open the side panel when the extension icon is clicked
   chrome.sidePanel.open({ tabId: tab.id });
 });
+
+// Listen for messages from the popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  // Handle request for default prompt
+  if (request.action === "getDefaultPrompt") {
+    sendResponse({ defaultPrompt: DEFAULT_BIAS_ANALYSIS_PROMPT });
+    return true; // Keep the message channel open for async response
+  }
+});

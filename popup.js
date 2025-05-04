@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("results").style.display = "none";
       document.getElementById("bias-meter-container").style.display = "none";
       document.getElementById("loading").style.display = "none";
+      document.getElementById("progress-updates-container").style.display = "none";
       
       // Hide notification banner
       const notificationBanner = document.getElementById("notification-banner");
@@ -72,14 +73,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             notificationBanner.style.opacity = '1';
             
             // Adjust the results container padding to make room for the banner
-            // Increased to account for banner height plus spacing
-            resultsContainer.style.paddingTop = '190px';
+            // Header height + banner height + small gap
+            resultsContainer.style.paddingTop = '160px';
           } else {
             notificationBanner.style.display = 'none';
             notificationBanner.style.opacity = '0';
             
             // Reset padding when banner is hidden
-            resultsContainer.style.paddingTop = '125px';
+            // resultsContainer.style.paddingTop = '110px';
           }
         });
       }
@@ -133,6 +134,112 @@ document.addEventListener("DOMContentLoaded", async () => {
     promptViewPage.style.display = "none";
   });
   
+  // Advanced Settings page functionality
+  const advancedSettingsButton = document.getElementById("advanced-settings-button");
+  const advancedSettingsPage = document.getElementById("advanced-settings-page");
+  const advancedSettingsBack = document.getElementById("advanced-settings-back");
+  
+  // Show advanced settings page when advanced settings button is clicked
+  advancedSettingsButton.addEventListener("click", () => {
+    advancedSettingsPage.style.display = "flex";
+    loadFullPrompt();
+  });
+  
+  // Return to prompt view page when back button is clicked
+  advancedSettingsBack.addEventListener("click", () => {
+    advancedSettingsPage.style.display = "none";
+  });
+  
+  // Function to load the full prompt into the textarea
+  async function loadFullPrompt() {
+    try {
+      // Get the full prompt from storage
+      const prompt = await getStoredPrompt();
+      
+      // Display the full prompt in the textarea
+      document.getElementById("full-prompt-textarea").value = prompt;
+      
+      // Set up event listeners for save and reset buttons
+      document.getElementById("full-prompt-save").addEventListener("click", saveFullPrompt);
+      document.getElementById("full-prompt-reset").addEventListener("click", resetFullPrompt);
+    } catch (error) {
+      console.error("Error loading full prompt:", error);
+      alert("Error loading prompt: " + error.message);
+    }
+  }
+  
+  // Function to save the full prompt
+  async function saveFullPrompt() {
+    try {
+      const fullPromptTextarea = document.getElementById("full-prompt-textarea");
+      const fullPrompt = fullPromptTextarea.value.trim();
+      
+      // Validate that the prompt contains the article_text placeholder
+      if (!fullPrompt.includes("{article_text}")) {
+        if (!confirm("Warning: The prompt does not contain the {article_text} placeholder. This is required for the extension to work properly. Do you want to add it automatically?")) {
+          return; // User cancelled
+        }
+        
+        // Add the placeholder at the end of the prompt
+        fullPromptTextarea.value = fullPrompt + "\n\n{article_text}";
+      }
+      
+      // Save the full prompt to storage
+      chrome.storage.local.set({ 
+        biasAnalysisPrompt: fullPromptTextarea.value,
+        lastPromptUpdate: Date.now()
+      }, () => {
+        alert("Full prompt saved successfully!");
+        
+        // Parse the new prompt into sections and update storage
+        const sections = parsePromptIntoSections(fullPromptTextarea.value);
+        chrome.storage.local.set({ promptSections: sections });
+        
+        // Update the section textareas in the prompt view page
+        populatePromptEditorFields(sections);
+      });
+    } catch (error) {
+      console.error("Error saving full prompt:", error);
+      alert("Error saving prompt: " + error.message);
+    }
+  }
+  
+  // Function to reset the full prompt to default
+  async function resetFullPrompt() {
+    try {
+      if (confirm("Are you sure you want to reset the prompt to default? All customizations will be lost.")) {
+        // Get the default prompt from background script
+        chrome.runtime.sendMessage({ action: "getDefaultPrompt" }, (response) => {
+          if (response && response.defaultPrompt) {
+            // Display the default prompt in the textarea
+            document.getElementById("full-prompt-textarea").value = response.defaultPrompt;
+            
+            // Save the default prompt to storage
+            chrome.storage.local.set({ 
+              biasAnalysisPrompt: response.defaultPrompt,
+              lastPromptUpdate: Date.now()
+            }, () => {
+              alert("Prompt reset to default!");
+              
+              // Parse the default prompt into sections and update storage
+              const sections = parsePromptIntoSections(response.defaultPrompt);
+              chrome.storage.local.set({ promptSections: sections });
+              
+              // Update the section textareas in the prompt view page
+              populatePromptEditorFields(sections);
+            });
+          } else {
+            console.error("Failed to get default prompt");
+            alert("Failed to get default prompt");
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error resetting full prompt:", error);
+      alert("Error resetting prompt: " + error.message);
+    }
+  }
+  
   // Function to get the stored prompt from Chrome storage
   async function getStoredPrompt() {
     return new Promise((resolve) => {
@@ -179,17 +286,213 @@ Role: You are a highly vigilant internet watchdog who's main priority is to assi
     return data.prompt;
   }
 
+  // Function to parse the prompt into sections
+  function parsePromptIntoSections(prompt) {
+    // Default empty sections
+    const sections = {
+      role: "",
+      context: "",
+      overallBiasScore: "",
+      languageTone: "",
+      framingPerspective: "",
+      alternativePerspectives: "",
+      task: "",
+      outputInstructions: "",
+      outputExample: ""
+    };
+    
+    // Regular expressions to match each section
+    const roleRegex = /Role:\s*([\s\S]*?)(?=Context:|$)/;
+    const contextRegex = /Context:\s*([\s\S]*?)(?=1\.\s*Overall Bias Score|$)/;
+    const biasScoreRegex = /1\.\s*Overall Bias Score([\s\S]*?)(?=2\.\s*Language and Tone|$)/;
+    const languageToneRegex = /2\.\s*Language and Tone([\s\S]*?)(?=3\.\s*Framing and Perspective|$)/;
+    const framingRegex = /3\.\s*Framing and Perspective([\s\S]*?)(?=4\.\s*Alternative Perspectives|$)/;
+    const alternativesRegex = /4\.\s*Alternative Perspectives([\s\S]*?)(?=Listed below delimitted by the triple dashes|Task:|$)/;
+    const taskRegex = /Task:\s*([\s\S]*?)(?=Output Instructions:|$)/;
+    const outputInstructionsRegex = /Output Instructions:\s*([\s\S]*?)(?=Output Example:|$)/;
+    const outputExampleRegex = /Output Example:\s*([\s\S]*?)$/;
+    
+    // Extract each section using regex
+    const roleMatch = prompt.match(roleRegex);
+    if (roleMatch) sections.role = roleMatch[1].trim();
+    
+    const contextMatch = prompt.match(contextRegex);
+    if (contextMatch) sections.context = contextMatch[1].trim();
+    
+    const biasScoreMatch = prompt.match(biasScoreRegex);
+    if (biasScoreMatch) sections.overallBiasScore = biasScoreMatch[0].trim();
+    
+    const languageToneMatch = prompt.match(languageToneRegex);
+    if (languageToneMatch) sections.languageTone = languageToneMatch[0].trim();
+    
+    const framingMatch = prompt.match(framingRegex);
+    if (framingMatch) sections.framingPerspective = framingMatch[0].trim();
+    
+    const alternativesMatch = prompt.match(alternativesRegex);
+    if (alternativesMatch) sections.alternativePerspectives = alternativesMatch[0].trim();
+    
+    const taskMatch = prompt.match(taskRegex);
+    if (taskMatch) sections.task = taskMatch[1].trim();
+    
+    const outputInstructionsMatch = prompt.match(outputInstructionsRegex);
+    if (outputInstructionsMatch) sections.outputInstructions = outputInstructionsMatch[1].trim();
+    
+    const outputExampleMatch = prompt.match(outputExampleRegex);
+    if (outputExampleMatch) sections.outputExample = outputExampleMatch[1].trim();
+    
+    return sections;
+  }
+  
+  // Function to concatenate sections into a full prompt
+  function concatenatePromptSections(sections) {
+    // Make sure the task section includes the article_text placeholder
+    let taskSection = sections.task;
+    
+    // Check if the task section or alternatives section already contains the placeholder
+    const hasPlaceholder = taskSection.includes("{article_text}") || 
+                          sections.alternativePerspectives.includes("{article_text}");
+    
+    // If not, ensure we add the placeholder in the proper format
+    if (!hasPlaceholder) {
+      // Add the article text placeholder with proper formatting
+      if (!taskSection.includes("Listed below delimitted by the triple dashes")) {
+        taskSection = taskSection.trim() + "\n\nListed below delimitted by the triple dashes is the news article that you will be analyzing:\n---\n{article_text}\n---";
+      }
+    }
+    
+    return `
+Role: ${sections.role}
+
+Context: ${sections.context}
+
+${sections.overallBiasScore}
+
+${sections.languageTone}
+
+${sections.framingPerspective}
+
+${sections.alternativePerspectives}
+
+Task: ${taskSection}
+
+Output Instructions: ${sections.outputInstructions}
+
+Output Example:
+
+${sections.outputExample}
+`.trim();
+  }
+  
+  // Function to populate the prompt editor fields
+  function populatePromptEditorFields(sections) {
+    document.getElementById("prompt-role").value = sections.role;
+    document.getElementById("prompt-context").value = sections.context;
+    document.getElementById("prompt-bias-score").value = sections.overallBiasScore;
+    document.getElementById("prompt-language-tone").value = sections.languageTone;
+    document.getElementById("prompt-framing").value = sections.framingPerspective;
+    document.getElementById("prompt-alternatives").value = sections.alternativePerspectives;
+    document.getElementById("prompt-task").value = sections.task;
+    
+    // Populate read-only sections
+    document.getElementById("prompt-output-instructions").textContent = sections.outputInstructions;
+    document.getElementById("prompt-output-example").textContent = sections.outputExample;
+  }
+  
+  // Function to get sections from the prompt editor fields
+  function getSectionsFromPromptEditorFields() {
+    return {
+      role: document.getElementById("prompt-role").value.trim(),
+      context: document.getElementById("prompt-context").value.trim(),
+      overallBiasScore: document.getElementById("prompt-bias-score").value.trim(),
+      languageTone: document.getElementById("prompt-language-tone").value.trim(),
+      framingPerspective: document.getElementById("prompt-framing").value.trim(),
+      alternativePerspectives: document.getElementById("prompt-alternatives").value.trim(),
+      task: document.getElementById("prompt-task").value.trim(),
+      outputInstructions: document.getElementById("prompt-output-instructions").textContent.trim(),
+      outputExample: document.getElementById("prompt-output-example").textContent.trim()
+    };
+  }
+  
+  // Function to save the prompt to Chrome storage
+  async function savePromptToStorage() {
+    const sections = getSectionsFromPromptEditorFields();
+    const fullPrompt = concatenatePromptSections(sections);
+    
+    return new Promise((resolve) => {
+      chrome.storage.local.set({ 
+        biasAnalysisPrompt: fullPrompt,
+        promptSections: sections,
+        lastPromptUpdate: Date.now()
+      }, () => {
+        resolve();
+      });
+    });
+  }
+  
+  // Function to reset the prompt to default
+  async function resetPromptToDefault() {
+    return new Promise((resolve) => {
+      // Get the default prompt from background script
+      chrome.runtime.sendMessage({ action: "getDefaultPrompt" }, (response) => {
+        if (response && response.defaultPrompt) {
+          // Parse the default prompt into sections
+          const sections = parsePromptIntoSections(response.defaultPrompt);
+          
+          // Save to storage
+          chrome.storage.local.set({ 
+            biasAnalysisPrompt: response.defaultPrompt,
+            promptSections: sections,
+            lastPromptUpdate: Date.now()
+          }, () => {
+            // Populate the editor fields
+            populatePromptEditorFields(sections);
+            resolve();
+          });
+        } else {
+          console.error("Failed to get default prompt");
+          resolve();
+        }
+      });
+    });
+  }
+  
   // Function to fetch and display the AI bias prompt
   async function fetchAndDisplayPrompt() {
-    const promptTextContainer = document.getElementById("prompt-text");
-    
     try {
       // Get prompt from Chrome storage
       const prompt = await getStoredPrompt();
-      promptTextContainer.textContent = prompt;
+      
+      // Parse the prompt into sections
+      const sections = parsePromptIntoSections(prompt);
+      
+      // Populate the editor fields
+      populatePromptEditorFields(sections);
+      
+      // Set up event listeners for the save and reset buttons
+      document.getElementById("prompt-save").addEventListener("click", async () => {
+        await savePromptToStorage();
+        alert("Prompt saved successfully!");
+      });
+      
+      document.getElementById("prompt-reset").addEventListener("click", async () => {
+        if (confirm("Are you sure you want to reset the prompt to default? All customizations will be lost.")) {
+          await resetPromptToDefault();
+          alert("Prompt reset to default!");
+        }
+      });
+      
+      // Set up auto-save for text fields
+      const textareas = document.querySelectorAll(".prompt-textarea");
+      textareas.forEach(textarea => {
+        textarea.addEventListener("blur", async () => {
+          await savePromptToStorage();
+          console.log("Prompt auto-saved");
+        });
+      });
+      
     } catch (error) {
-      promptTextContainer.textContent = "Error loading prompt: " + error.message;
       console.error("Error fetching prompt:", error);
+      alert("Error loading prompt: " + error.message);
     }
   }
   
@@ -440,9 +743,34 @@ Role: You are a highly vigilant internet watchdog who's main priority is to assi
     });
   }
 
-  document.getElementById("analyze-button").addEventListener("click", async () => {
+  // Function to update progress status with fade effect
+function updateProgressStatus(message) {
+  const progressContainer = document.getElementById("progress-updates-container");
+  const progressText = document.getElementById("progress-update-text");
+  
+  // Show container if hidden
+  if (progressContainer.style.display === "none") {
+    progressContainer.style.display = "flex";
+  }
+  
+  // Fade out current text, update, then fade in
+  progressText.style.opacity = "0";
+  
+  setTimeout(() => {
+    progressText.textContent = message;
+    progressText.style.opacity = "1";
+  }, 300);
+}
+
+// Generate a unique session ID for WebSocket communication
+function generateSessionId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+document.getElementById("analyze-button").addEventListener("click", async () => {
     const resultsDiv = document.getElementById("results");
     const loadingDiv = document.getElementById("loading");
+    const progressContainer = document.getElementById("progress-updates-container");
     
     // Check if running in Chrome extension context
     const isExtension = typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local;
@@ -454,6 +782,10 @@ Role: You are a highly vigilant internet watchdog who's main priority is to assi
 
     resultsDiv.style.display = "none"; // Hide results
     loadingDiv.style.display = "block"; // Show spinner
+    progressContainer.style.display = "flex"; // Show progress updates
+    
+    // Initial progress update
+    updateProgressStatus("Initializing analysis...");
 
     // For testing outside of the extension
     if (!isExtension) {
@@ -472,18 +804,28 @@ Role: You are a highly vigilant internet watchdog who's main priority is to assi
         throw new Error("No active tab found");
       }
 
+      // Update progress status
+      updateProgressStatus("Extracting article content...");
+      
       // Send a message to the content script to get the article text
       chrome.tabs.sendMessage(tab.id, { action: "getArticleText" }, async (response) => {
         if (chrome.runtime.lastError) {
           loadingDiv.style.display = "none"; // Hide spinner
+          progressContainer.style.display = "none"; // Hide progress updates
           alert("Error: " + chrome.runtime.lastError.message);
           return;
         }
 
         if (response && response.articleText) {
           try {
+            // Update progress status
+            updateProgressStatus("Preparing analysis...");
+            
             // Get the prompt from Chrome storage
             const prompt = await getStoredPrompt();
+            
+            // Update progress status
+            updateProgressStatus("Sending to AI for analysis...");
             
             // Send the article text AND prompt to your backend server
             const res = await fetch("http://127.0.0.1:5000/analyze", {
@@ -501,16 +843,27 @@ Role: You are a highly vigilant internet watchdog who's main priority is to assi
               throw new Error(`Server error: ${res.statusText}`);
             }
 
+            // Update progress status
+            updateProgressStatus("Processing AI response...");
+            
             const analysis = await res.json();
 
             if (analysis.error) {
               loadingDiv.style.display = "none"; // Hide spinner
+              progressContainer.style.display = "none"; // Hide progress updates
               alert("Error: " + analysis.error);
             } else {
-              loadingDiv.style.display = "none"; // Hide spinner
-              resultsDiv.style.display = "block"; // Show results
-              // Display the results in the dashboard
-              displayResults(analysis);
+              // Update progress status
+              updateProgressStatus("Building your dashboard...");
+              
+              // Short delay to allow the user to see the final progress message
+              setTimeout(() => {
+                loadingDiv.style.display = "none"; // Hide spinner
+                progressContainer.style.display = "none"; // Hide progress updates
+                resultsDiv.style.display = "block"; // Show results
+                // Display the results in the dashboard
+                displayResults(analysis);
+              }, 800);
               // Save results to chrome.storage.local for persistence
               chrome.storage.local.set({ 
                 analysisResults: analysis,

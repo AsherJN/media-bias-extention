@@ -29,8 +29,13 @@
         <button id="analyze-button">Analyze</button>
       </div>
     </div>
-    <!-- Loading Spinner -->
-    <div id="loading" class="spinner" style="display: none;"></div>
+    <!-- Loading Spinner and Progress Updates -->
+    <div id="loading-container">
+      <div id="loading" class="spinner" style="display: none;"></div>
+      <div id="progress-updates-container" style="display: none;">
+        <div id="progress-update-text">Initializing analysis...</div>
+      </div>
+    </div>
     <!-- Notification Banner -->
     <div id="notification-banner" style="display: none;">
       <p>You've navigated to a new page. Click "Analyze" to update the dashboard.</p>
@@ -106,8 +111,98 @@
       <div id="prompt-back">←</div>
     </div>
     <div class="prompt-content">
-      <p>The AI prompt used for bias analysis will appear here.</p>
-      <div id="prompt-text" class="prompt-text-container"></div>
+      <p>Customize the AI prompt used for bias analysis. Changes will be saved automatically and used for future analyses.</p>
+      <div class="prompt-info-box">
+        <p><strong>Important:</strong> When editing the prompt, please ensure that:</p>
+        <ul>
+          <li>The <code>{article_text}</code> placeholder is preserved somewhere in the prompt (it will be automatically added if missing)</li>
+          <li>The overall structure of the prompt is maintained</li>
+          <li>The output instructions and example sections remain unchanged to ensure proper JSON formatting</li>
+        </ul>
+        <p>If you encounter errors after editing, try using the "Reset to Default" button.</p>
+      </div>
+      
+      <div class="prompt-actions top-actions">
+        <button id="advanced-settings-button" class="prompt-button secondary">Advanced Settings</button>
+      </div>
+      
+      <div class="prompt-section">
+        <h3>Role</h3>
+        <textarea id="prompt-role" class="prompt-textarea" placeholder="Define the AI's role..."></textarea>
+      </div>
+      
+      <div class="prompt-section">
+        <h3>Context</h3>
+        <textarea id="prompt-context" class="prompt-textarea" placeholder="Provide context for the analysis..."></textarea>
+      </div>
+      
+      <div class="prompt-section">
+        <h3>Overall Bias Score</h3>
+        <textarea id="prompt-bias-score" class="prompt-textarea" placeholder="Define how to assess bias score..."></textarea>
+      </div>
+      
+      <div class="prompt-section">
+        <h3>Language and Tone</h3>
+        <textarea id="prompt-language-tone" class="prompt-textarea" placeholder="Define how to assess language and tone..."></textarea>
+      </div>
+      
+      <div class="prompt-section">
+        <h3>Framing and Perspective</h3>
+        <textarea id="prompt-framing" class="prompt-textarea" placeholder="Define how to assess framing and perspective..."></textarea>
+      </div>
+      
+      <div class="prompt-section">
+        <h3>Alternative Perspectives</h3>
+        <textarea id="prompt-alternatives" class="prompt-textarea" placeholder="Define how to assess alternative perspectives..."></textarea>
+      </div>
+      
+      <div class="prompt-section">
+        <h3>Task</h3>
+        <textarea id="prompt-task" class="prompt-textarea" placeholder="Define the analysis task..."></textarea>
+      </div>
+      
+      <div class="prompt-section">
+        <h3>Output Instructions (Not Editable)</h3>
+        <div id="prompt-output-instructions" class="prompt-readonly"></div>
+      </div>
+      
+      <div class="prompt-section">
+        <h3>Output Example (Not Editable)</h3>
+        <div id="prompt-output-example" class="prompt-readonly"></div>
+      </div>
+      
+      <div class="prompt-actions">
+        <button id="prompt-save" class="prompt-button">Save Changes</button>
+        <button id="prompt-reset" class="prompt-button secondary">Reset to Default</button>
+      </div>
+    </div>
+  </div>
+  <!-- Advanced Settings Page -->
+  <div id="advanced-settings-page" style="display: none;">
+    <div class="prompt-header">
+      <h2>Advanced Prompt Settings</h2>
+      <div id="advanced-settings-back">←</div>
+    </div>
+    <div class="prompt-content">
+      <div class="prompt-warning-box">
+        <p><strong>Warning:</strong> Editing the entire prompt directly may break the extension's functionality.</p>
+        <ul>
+          <li>The <code>{article_text}</code> placeholder <strong>must</strong> be preserved</li>
+          <li>The JSON output format must be maintained</li>
+          <li>Changes here override individual section edits</li>
+        </ul>
+        <p>Use this feature only if you understand the risks. If problems occur, use "Reset to Default".</p>
+      </div>
+      
+      <div class="full-prompt-container">
+        <h3>Complete Prompt</h3>
+        <textarea id="full-prompt-textarea" class="full-prompt-textarea" placeholder="The complete AI prompt will appear here..."></textarea>
+      </div>
+      
+      <div class="prompt-actions">
+        <button id="full-prompt-save" class="prompt-button">Save Changes</button>
+        <button id="full-prompt-reset" class="prompt-button secondary">Reset to Default</button>
+      </div>
     </div>
   </div>
   <script src="popup.js"></script>

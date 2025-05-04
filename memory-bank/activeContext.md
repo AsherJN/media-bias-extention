@@ -14,17 +14,29 @@ The Media Bias Analyzer is currently at version 2.0, with a focus on the followi
 
 ## Recent Changes
 
+### Documentation Updates
+- Completely overhauled README.md to reflect current version 2.0 status and features
+- Added mermaid diagram to README.md to visualize system architecture
+- Updated installation and usage instructions for side panel implementation
+- Added comprehensive sections on features, architecture, and roadmap
+- Included troubleshooting guide and current status information
+
 ### UI/UX Improvements
 - Implemented a bias meter with visual indicator showing the article's position on the political spectrum
 - Added collapsible sections for different analysis components to prevent information overload
 - Designed a history page with entry management functionality
 - Created a settings page framework for future configuration options
+- Added Advanced Settings page to prompt view for full concatenated prompt editing
+- Added task progress updates: fading text prompts at key analysis milestones alongside loading spinner
+- Fixed spacing between header div and bias score div for a consistent, polished layout
 
 ### Technical Enhancements
 - Migrated to Chrome Extension Manifest V3
 - Implemented side panel integration using Chrome's side panel API
 - Added favicon extraction for history entries
 - Improved error handling for network and API issues
+- Implemented client-side prompt storage and retrieval using Chrome storage (background.js, popup.js)
+- Modified backend analyze endpoint to accept and use a provided prompt parameter (media-bias-backend/app.py)
 
 ### Backend Refinements
 - Updated the OpenAI integration to use GPT-4o
