@@ -43,6 +43,9 @@ The Media Bias Analyzer is currently at version 2.0, with a focus on the followi
 - Refined the analysis prompt to provide more nuanced bias evaluation
 - Implemented JSON response formatting for consistent data structure
 - Pinned OpenAI package to version 0.28.1 to resolve import compatibility issues
+- Removed backend generate_prompt() function and now require prompt sent from frontend
+- Added map_json_fields() to map new dashboard item fields for backward compatibility
+- Updated analyze endpoint to remove fallback generate_prompt and enforce provided prompt usage
 
 ## Next Steps
 

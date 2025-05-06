@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             
             // Adjust the results container padding to make room for the banner
             // Header height + banner height + small gap
-            resultsContainer.style.paddingTop = '160px';
+            // resultsContainer.style.paddingTop = '160px';
           } else {
             notificationBanner.style.display = 'none';
             notificationBanner.style.opacity = '0';
@@ -302,15 +302,18 @@ Role: You are a highly vigilant internet watchdog who's main priority is to assi
     };
     
     // Regular expressions to match each section
-    const roleRegex = /Role:\s*([\s\S]*?)(?=Context:|$)/;
-    const contextRegex = /Context:\s*([\s\S]*?)(?=1\.\s*Overall Bias Score|$)/;
-    const biasScoreRegex = /1\.\s*Overall Bias Score([\s\S]*?)(?=2\.\s*Language and Tone|$)/;
-    const languageToneRegex = /2\.\s*Language and Tone([\s\S]*?)(?=3\.\s*Framing and Perspective|$)/;
-    const framingRegex = /3\.\s*Framing and Perspective([\s\S]*?)(?=4\.\s*Alternative Perspectives|$)/;
-    const alternativesRegex = /4\.\s*Alternative Perspectives([\s\S]*?)(?=Listed below delimitted by the triple dashes|Task:|$)/;
-    const taskRegex = /Task:\s*([\s\S]*?)(?=Output Instructions:|$)/;
-    const outputInstructionsRegex = /Output Instructions:\s*([\s\S]*?)(?=Output Example:|$)/;
-    const outputExampleRegex = /Output Example:\s*([\s\S]*?)$/;
+    const roleRegex = /Role:\s*([\s\S]*?)(?=Context:|────+|$)/;
+    const contextRegex = /Context:\s*([\s\S]*?)(?=\*\*Dashboard Item 1\*\*|────+|$)/;
+    const biasScoreRegex = /\*\*Dashboard Item 1\*\*([\s\S]*?)(?=\*\*Dashboard Item 2\*\*|────+|$)/;
+    const analysisSummaryRegex = /\*\*Dashboard Item 2\*\*([\s\S]*?)(?=\*\*Dashboard Item 3\*\*|────+|$)/;
+    const articleSummaryRegex = /\*\*Dashboard Item 3\*\*([\s\S]*?)(?=\*\*Dashboard Item 4\*\*|────+|$)/;
+    const historicalContextRegex = /\*\*Dashboard Item 4\*\*([\s\S]*?)(?=\*\*Dashboard Item 5\*\*|────+|$)/;
+    const languageToneRegex = /\*\*Dashboard Item 5\*\*([\s\S]*?)(?=\*\*Dashboard Item 6\*\*|────+|$)/;
+    const framingRegex = /\*\*Dashboard Item 6\*\*([\s\S]*?)(?=\*\*Dashboard Item 7\*\*|────+|$)/;
+    const alternativesRegex = /\*\*Dashboard Item 7\*\*([\s\S]*?)(?=\*\*Dashboard Item 8\*\*|────+|$)/;
+    const publisherBiasRegex = /\*\*Dashboard Item 8\*\*([\s\S]*?)(?=Listed below, delimited by triple dashes|────+|$)/;
+    const taskRegex = /Task \(step‑by‑step\):\s*([\s\S]*?)(?=Required JSON Schema|$)/;
+    const outputSchemaRegex = /Required JSON Schema\s*([\s\S]*?)(?=$)/;
     
     // Extract each section using regex
     const roleMatch = prompt.match(roleRegex);
@@ -319,26 +322,32 @@ Role: You are a highly vigilant internet watchdog who's main priority is to assi
     const contextMatch = prompt.match(contextRegex);
     if (contextMatch) sections.context = contextMatch[1].trim();
     
+    // For the bias score, we'll use Dashboard Item 1
     const biasScoreMatch = prompt.match(biasScoreRegex);
     if (biasScoreMatch) sections.overallBiasScore = biasScoreMatch[0].trim();
     
+    // For language tone, we'll use Dashboard Item 5
     const languageToneMatch = prompt.match(languageToneRegex);
     if (languageToneMatch) sections.languageTone = languageToneMatch[0].trim();
     
+    // For framing perspective, we'll use Dashboard Item 6
     const framingMatch = prompt.match(framingRegex);
     if (framingMatch) sections.framingPerspective = framingMatch[0].trim();
     
+    // For alternative perspectives, we'll use Dashboard Item 7
     const alternativesMatch = prompt.match(alternativesRegex);
     if (alternativesMatch) sections.alternativePerspectives = alternativesMatch[0].trim();
     
+    // For task, we'll use the Task section
     const taskMatch = prompt.match(taskRegex);
     if (taskMatch) sections.task = taskMatch[1].trim();
     
-    const outputInstructionsMatch = prompt.match(outputInstructionsRegex);
-    if (outputInstructionsMatch) sections.outputInstructions = outputInstructionsMatch[1].trim();
-    
-    const outputExampleMatch = prompt.match(outputExampleRegex);
-    if (outputExampleMatch) sections.outputExample = outputExampleMatch[1].trim();
+    // For output instructions and example, we'll extract from the JSON schema
+    const outputSchemaMatch = prompt.match(outputSchemaRegex);
+    if (outputSchemaMatch) {
+      sections.outputInstructions = "Your output is strictly supposed to be in JSON formatting and your output should contain nothing else beyond the JSON content.";
+      sections.outputExample = outputSchemaMatch[1].trim();
+    }
     
     return sections;
   }
@@ -355,29 +364,40 @@ Role: You are a highly vigilant internet watchdog who's main priority is to assi
     // If not, ensure we add the placeholder in the proper format
     if (!hasPlaceholder) {
       // Add the article text placeholder with proper formatting
-      if (!taskSection.includes("Listed below delimitted by the triple dashes")) {
-        taskSection = taskSection.trim() + "\n\nListed below delimitted by the triple dashes is the news article that you will be analyzing:\n---\n{article_text}\n---";
+      if (!taskSection.includes("Listed below, delimited by triple dashes")) {
+        taskSection = taskSection.trim() + "\n\nListed below, delimited by triple dashes, is the **full text** of the news article you will analyze. **Do not modify it.**\n---\n{article_text}\n---";
       }
     }
     
+    // Format the prompt according to the new structure
     return `
 Role: ${sections.role}
 
+────────────────────────────────────────────────────────────────────────
+
 Context: ${sections.context}
+
+────────────────────────────────────────────────────────────────────────
 
 ${sections.overallBiasScore}
 
+────────────────────────────────────────────────────────────────────────
+
 ${sections.languageTone}
+
+────────────────────────────────────────────────────────────────────────
 
 ${sections.framingPerspective}
 
+────────────────────────────────────────────────────────────────────────
+
 ${sections.alternativePerspectives}
 
-Task: ${taskSection}
+────────────────────────────────────────────────────────────────────────
 
-Output Instructions: ${sections.outputInstructions}
+Task (step‑by‑step): ${taskSection}
 
-Output Example:
+Required JSON Schema
 
 ${sections.outputExample}
 `.trim();
@@ -876,7 +896,7 @@ document.getElementById("analyze-button").addEventListener("click", async () => 
               notificationBanner.style.opacity = "0";
               
               // Reset padding when banner is hidden
-              document.getElementById("results").style.paddingTop = "125px";
+              // document.getElementById("results").style.paddingTop = "125px";
               
               // Save to history if article info is available
               if (response.articleInfo) {
@@ -930,14 +950,14 @@ function displayResults(analysis) {
 
   // Create text bubbles for other metrics
   createSummaryBubble("Bias Analysis Result", analysis.analysis_summary, summaryDiv);
-  createTextBubble("Article Summary", analysis.content_summary, otherResultsDiv);
-  createTextBubble("Language Tone", analysis.language_tone, otherResultsDiv);
-  createTextBubble("Framing Perspective", analysis.framing_perspective, otherResultsDiv);
-  createTextBubble("Historical Context", analysis.context, otherResultsDiv);
-  createTextBubble("Alternative Perspectives", analysis.alternative_perspectives, otherResultsDiv);
-  createTextBubble("Article Publisher Bias", analysis.publisher_bias, otherResultsDiv);
-
   
+  // Map the new dashboard item IDs to the appropriate UI elements
+  createTextBubble("Article Summary", analysis.dashboard_item_3 || analysis.content_summary, otherResultsDiv);
+  createTextBubble("Historical Context", analysis.dashboard_item_4 || analysis.context, otherResultsDiv);
+  createTextBubble("Language & Tone", analysis.dashboard_item_5 || analysis.language_tone, otherResultsDiv);
+  createTextBubble("Framing & Perspective", analysis.dashboard_item_6 || analysis.framing_perspective, otherResultsDiv);
+  createTextBubble("Alternative Perspectives", analysis.dashboard_item_7 || analysis.alternative_perspectives, otherResultsDiv);
+  createTextBubble("Publisher Bias", analysis.dashboard_item_8 || analysis.publisher_bias, otherResultsDiv);
 }
 
 function createSummaryBubble(title, content, parentElement) {

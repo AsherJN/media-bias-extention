@@ -40,6 +40,7 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - **Flask API**: Backend server processes analysis requests
 - **OpenAI Integration**: GPT-4o model performs the actual analysis
 - **JSON Formatting**: Structured data exchange between components
+- **Prompt Management Shift**: Removed `generate_prompt()` fallback; now backend requires prompt from frontend and uses `map_json_fields()` for compatibility
 
 ## What's Left to Build
 

@@ -50,9 +50,9 @@ The Media Bias Analyzer follows a client-server architecture with the following 
    - Data is sent to background script
 
 2. **Analysis Request**
-   - Background script forwards article text to Flask backend
-   - Flask backend constructs a prompt with the article text
-   - Prompt is sent to OpenAI API
+   - Background script forwards article text and prompt template from the extension to the Flask backend
+   - Flask backend replaces `{article_text}` in the prompt with the actual article text
+   - Flask backend sends the completed prompt to the OpenAI API
 
 3. **Analysis Processing**
    - OpenAI API processes the prompt and returns analysis
