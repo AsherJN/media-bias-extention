@@ -138,22 +138,32 @@
       
       <div class="prompt-section">
         <h3>Overall Bias Score</h3>
-        <textarea id="prompt-bias-score" class="prompt-textarea" placeholder="Define how to assess bias score..."></textarea>
+        <textarea id="prompt-bias-score" class="prompt-textarea" placeholder="Define the bias score metrics..."></textarea>
       </div>
       
       <div class="prompt-section">
-        <h3>Language and Tone</h3>
-        <textarea id="prompt-language-tone" class="prompt-textarea" placeholder="Define how to assess language and tone..."></textarea>
+        <h3>Language & Tone</h3>
+        <textarea id="prompt-language-tone" class="prompt-textarea" placeholder="Define language and tone analysis..."></textarea>
       </div>
       
       <div class="prompt-section">
-        <h3>Framing and Perspective</h3>
-        <textarea id="prompt-framing" class="prompt-textarea" placeholder="Define how to assess framing and perspective..."></textarea>
+        <h3>Framing & Perspective</h3>
+        <textarea id="prompt-framing" class="prompt-textarea" placeholder="Define framing and perspective analysis..."></textarea>
       </div>
       
       <div class="prompt-section">
         <h3>Alternative Perspectives</h3>
-        <textarea id="prompt-alternatives" class="prompt-textarea" placeholder="Define how to assess alternative perspectives..."></textarea>
+        <textarea id="prompt-alternatives" class="prompt-textarea" placeholder="Define alternative perspectives analysis..."></textarea>
+      </div>
+      
+      <!-- Dashboard Items Section -->
+      <div class="dashboard-items-container prompt-section">
+        <h3>Dashboard Items</h3>
+        <p>Click on an item to edit its fields</p>
+        
+        <div id="dashboard-items-list">
+          <!-- Items will be dynamically inserted here -->
+        </div>
       </div>
       
       <div class="prompt-section">
@@ -205,6 +215,55 @@
       </div>
     </div>
   </div>
+  <!-- Template for a dashboard item -->
+  <template id="dashboard-item-template">
+    <div class="dashboard-item">
+      <div class="dashboard-item-header">
+        <span class="item-number"></span>
+        <span class="item-title"></span>
+        <span class="toggle-icon">+</span>
+      </div>
+      
+      <div class="dashboard-item-content" style="display: none;">
+        <div class="field-group">
+          <label>Title:</label>
+          <input type="text" class="item-title-input" />
+        </div>
+        
+        <div class="field-group">
+          <label>JSON ID:</label>
+          <input type="text" class="item-json-id-input" disabled />
+          <small>JSON ID cannot be edited</small>
+        </div>
+        
+        <div class="field-group">
+          <label>Word Count:</label>
+          <input type="text" class="item-word-count-input" />
+        </div>
+        
+        <div class="field-group">
+          <label>Definition:</label>
+          <textarea class="item-definition-input"></textarea>
+        </div>
+        
+        <div class="field-group">
+          <label>How to Assess:</label>
+          <textarea class="item-how-to-assess-input"></textarea>
+        </div>
+        
+        <div class="field-group">
+          <label>Key Questions:</label>
+          <textarea class="item-key-questions-input"></textarea>
+        </div>
+        
+        <div class="item-actions">
+          <button class="save-item-button">Save Changes</button>
+          <button class="cancel-item-button">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </template>
+  
   <script src="popup.js"></script>
 </body>
 </html>

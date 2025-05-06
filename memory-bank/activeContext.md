@@ -29,6 +29,7 @@ The Media Bias Analyzer is currently at version 2.0, with a focus on the followi
 - Added Advanced Settings page to prompt view for full concatenated prompt editing
 - Added task progress updates: fading text prompts at key analysis milestones alongside loading spinner
 - Fixed spacing between header div and bias score div for a consistent, polished layout
+- Added field-level editing UI for AI bias prompt dashboard items: collapsible sections with individual field editing (Title, Word Count, Definition, Assessment rules, Key Questions) and live save/reset via Chrome storage
 
 ### Technical Enhancements
 - Migrated to Chrome Extension Manifest V3

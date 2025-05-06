@@ -21,6 +21,9 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - **Comprehensive Insights**: Multiple dimensions of analysis are provided
 - **Side Panel UI**: Results are displayed in a clean, modern interface
 
+### Prompt Editing Enhancements
+- **Dashboard Items Editing UI**: Collapsible, field-by-field editing for each dashboard item (Title, Word Count, Definition, How to Assess, Key Questions) with live save/reset via Chrome storage
+
 ### User Interface
 - **Bias Meter**: Visual representation of bias with gradient and arrow indicator
 - **Expandable Sections**: Collapsible content areas for each analysis component

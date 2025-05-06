@@ -184,19 +184,27 @@ document.addEventListener("DOMContentLoaded", async () => {
         fullPromptTextarea.value = fullPrompt + "\n\n{article_text}";
       }
       
+      // Parse the new prompt into sections and dashboard items
+      const sections = parsePromptIntoSections(fullPromptTextarea.value);
+      const dashboardItems = parsePromptIntoDashboardItems(fullPromptTextarea.value);
+      
+      // Update the global dashboard items
+      window.dashboardItems = dashboardItems;
+      
       // Save the full prompt to storage
       chrome.storage.local.set({ 
         biasAnalysisPrompt: fullPromptTextarea.value,
+        promptSections: sections,
+        dashboardItems: dashboardItems,
         lastPromptUpdate: Date.now()
       }, () => {
         alert("Full prompt saved successfully!");
         
-        // Parse the new prompt into sections and update storage
-        const sections = parsePromptIntoSections(fullPromptTextarea.value);
-        chrome.storage.local.set({ promptSections: sections });
-        
         // Update the section textareas in the prompt view page
         populatePromptEditorFields(sections);
+        
+        // Render the dashboard items list
+        renderDashboardItemsList(dashboardItems);
       });
     } catch (error) {
       console.error("Error saving full prompt:", error);
@@ -214,19 +222,27 @@ document.addEventListener("DOMContentLoaded", async () => {
             // Display the default prompt in the textarea
             document.getElementById("full-prompt-textarea").value = response.defaultPrompt;
             
+            // Parse the default prompt into sections and dashboard items
+            const sections = parsePromptIntoSections(response.defaultPrompt);
+            const dashboardItems = parsePromptIntoDashboardItems(response.defaultPrompt);
+            
+            // Update the global dashboard items
+            window.dashboardItems = dashboardItems;
+            
             // Save the default prompt to storage
             chrome.storage.local.set({ 
               biasAnalysisPrompt: response.defaultPrompt,
+              promptSections: sections,
+              dashboardItems: dashboardItems,
               lastPromptUpdate: Date.now()
             }, () => {
               alert("Prompt reset to default!");
               
-              // Parse the default prompt into sections and update storage
-              const sections = parsePromptIntoSections(response.defaultPrompt);
-              chrome.storage.local.set({ promptSections: sections });
-              
               // Update the section textareas in the prompt view page
               populatePromptEditorFields(sections);
+              
+              // Render the dashboard items list
+              renderDashboardItemsList(dashboardItems);
             });
           } else {
             console.error("Failed to get default prompt");
@@ -268,6 +284,42 @@ Role: You are a highly vigilant internet watchdog who's main priority is to assi
       });
     });
   }
+  
+  // Function to parse the prompt into dashboard items
+  function parsePromptIntoDashboardItems(prompt) {
+    const dashboardItems = [];
+    
+    // Regex to find all dashboard items
+    const dashboardItemRegex = /\*\*Dashboard Item (\d+)\*\*([\s\S]*?)(?=\*\*Dashboard Item \d+\*\*|────+|Listed below, delimited by triple dashes|$)/g;
+    
+    let match;
+    while ((match = dashboardItemRegex.exec(prompt)) !== null) {
+      const itemNumber = match[1];
+      const itemContent = match[2].trim();
+      
+      // Extract individual fields
+      const titleMatch = itemContent.match(/Title:\s*(.*?)(?=\n|$)/);
+      const jsonIdMatch = itemContent.match(/JSON ID:\s*(.*?)(?=\n|$)/);
+      const wordCountMatch = itemContent.match(/Word Count:\s*(.*?)(?=\n|$)/);
+      const definitionMatch = itemContent.match(/Definition:\s*([\s\S]*?)(?=How to Assess:|$)/);
+      const howToAssessMatch = itemContent.match(/How to Assess:\s*([\s\S]*?)(?=Key Questions:|$)/);
+      const keyQuestionsMatch = itemContent.match(/Key Questions:\s*([\s\S]*?)(?=$)/);
+      
+      const dashboardItem = {
+        itemNumber,
+        title: titleMatch ? titleMatch[1].trim() : "",
+        jsonId: jsonIdMatch ? jsonIdMatch[1].trim() : "",
+        wordCount: wordCountMatch ? wordCountMatch[1].trim() : "",
+        definition: definitionMatch ? definitionMatch[1].trim() : "",
+        howToAssess: howToAssessMatch ? howToAssessMatch[1].trim() : "",
+        keyQuestions: keyQuestionsMatch ? keyQuestionsMatch[1].trim() : ""
+      };
+      
+      dashboardItems.push(dashboardItem);
+    }
+    
+    return dashboardItems;
+  }
 
   // Function to fetch the prompt from the backend (used as fallback)
   async function fetchPromptFromBackend() {
@@ -301,55 +353,78 @@ Role: You are a highly vigilant internet watchdog who's main priority is to assi
       outputExample: ""
     };
     
-    // Regular expressions to match each section
-    const roleRegex = /Role:\s*([\s\S]*?)(?=Context:|────+|$)/;
-    const contextRegex = /Context:\s*([\s\S]*?)(?=\*\*Dashboard Item 1\*\*|────+|$)/;
-    const biasScoreRegex = /\*\*Dashboard Item 1\*\*([\s\S]*?)(?=\*\*Dashboard Item 2\*\*|────+|$)/;
-    const analysisSummaryRegex = /\*\*Dashboard Item 2\*\*([\s\S]*?)(?=\*\*Dashboard Item 3\*\*|────+|$)/;
-    const articleSummaryRegex = /\*\*Dashboard Item 3\*\*([\s\S]*?)(?=\*\*Dashboard Item 4\*\*|────+|$)/;
-    const historicalContextRegex = /\*\*Dashboard Item 4\*\*([\s\S]*?)(?=\*\*Dashboard Item 5\*\*|────+|$)/;
-    const languageToneRegex = /\*\*Dashboard Item 5\*\*([\s\S]*?)(?=\*\*Dashboard Item 6\*\*|────+|$)/;
-    const framingRegex = /\*\*Dashboard Item 6\*\*([\s\S]*?)(?=\*\*Dashboard Item 7\*\*|────+|$)/;
-    const alternativesRegex = /\*\*Dashboard Item 7\*\*([\s\S]*?)(?=\*\*Dashboard Item 8\*\*|────+|$)/;
-    const publisherBiasRegex = /\*\*Dashboard Item 8\*\*([\s\S]*?)(?=Listed below, delimited by triple dashes|────+|$)/;
-    const taskRegex = /Task \(step‑by‑step\):\s*([\s\S]*?)(?=Required JSON Schema|$)/;
-    const outputSchemaRegex = /Required JSON Schema\s*([\s\S]*?)(?=$)/;
-    
-    // Extract each section using regex
-    const roleMatch = prompt.match(roleRegex);
-    if (roleMatch) sections.role = roleMatch[1].trim();
-    
-    const contextMatch = prompt.match(contextRegex);
-    if (contextMatch) sections.context = contextMatch[1].trim();
-    
-    // For the bias score, we'll use Dashboard Item 1
-    const biasScoreMatch = prompt.match(biasScoreRegex);
-    if (biasScoreMatch) sections.overallBiasScore = biasScoreMatch[0].trim();
-    
-    // For language tone, we'll use Dashboard Item 5
-    const languageToneMatch = prompt.match(languageToneRegex);
-    if (languageToneMatch) sections.languageTone = languageToneMatch[0].trim();
-    
-    // For framing perspective, we'll use Dashboard Item 6
-    const framingMatch = prompt.match(framingRegex);
-    if (framingMatch) sections.framingPerspective = framingMatch[0].trim();
-    
-    // For alternative perspectives, we'll use Dashboard Item 7
-    const alternativesMatch = prompt.match(alternativesRegex);
-    if (alternativesMatch) sections.alternativePerspectives = alternativesMatch[0].trim();
-    
-    // For task, we'll use the Task section
-    const taskMatch = prompt.match(taskRegex);
-    if (taskMatch) sections.task = taskMatch[1].trim();
-    
-    // For output instructions and example, we'll extract from the JSON schema
-    const outputSchemaMatch = prompt.match(outputSchemaRegex);
-    if (outputSchemaMatch) {
-      sections.outputInstructions = "Your output is strictly supposed to be in JSON formatting and your output should contain nothing else beyond the JSON content.";
-      sections.outputExample = outputSchemaMatch[1].trim();
+    try {
+      // Regular expressions to match each section
+      const roleRegex = /Role:\s*([\s\S]*?)(?=Context:|────+|$)/i;
+      const contextRegex = /Context:\s*([\s\S]*?)(?=\*\*Dashboard Item 1\*\*|────+|$)/i;
+      const taskRegex = /Task \(step‑by‑step\):\s*([\s\S]*?)(?=Required JSON Schema|$)/i;
+      const outputSchemaRegex = /Required JSON Schema\s*([\s\S]*?)(?=$)/i;
+      
+      // Extract each section using regex
+      const roleMatch = prompt.match(roleRegex);
+      if (roleMatch) sections.role = roleMatch[1].trim();
+      
+      const contextMatch = prompt.match(contextRegex);
+      if (contextMatch) sections.context = contextMatch[1].trim();
+      
+      // Extract dashboard items
+      const dashboardItems = parsePromptIntoDashboardItems(prompt);
+      
+      // Find specific dashboard items by their item number
+      const biasScoreItem = dashboardItems.find(item => item.itemNumber === "1");
+      const languageToneItem = dashboardItems.find(item => item.itemNumber === "5");
+      const framingItem = dashboardItems.find(item => item.itemNumber === "6");
+      const alternativesItem = dashboardItems.find(item => item.itemNumber === "7");
+      
+      // Format dashboard items for sections
+      if (biasScoreItem) {
+        sections.overallBiasScore = formatDashboardItemForSection(biasScoreItem);
+      }
+      
+      if (languageToneItem) {
+        sections.languageTone = formatDashboardItemForSection(languageToneItem);
+      }
+      
+      if (framingItem) {
+        sections.framingPerspective = formatDashboardItemForSection(framingItem);
+      }
+      
+      if (alternativesItem) {
+        sections.alternativePerspectives = formatDashboardItemForSection(alternativesItem);
+      }
+      
+      // For task, we'll use the Task section
+      const taskMatch = prompt.match(taskRegex);
+      if (taskMatch) sections.task = taskMatch[1].trim();
+      
+      // For output instructions and example, we'll extract from the JSON schema
+      const outputSchemaMatch = prompt.match(outputSchemaRegex);
+      if (outputSchemaMatch) {
+        sections.outputInstructions = "Your output is strictly supposed to be in JSON formatting and your output should contain nothing else beyond the JSON content.";
+        sections.outputExample = outputSchemaMatch[1].trim();
+      }
+      
+      console.log("Parsed prompt into sections successfully");
+    } catch (error) {
+      console.error("Error parsing prompt into sections:", error);
     }
     
     return sections;
+  }
+  
+  // Helper function to format a dashboard item for a section
+  function formatDashboardItemForSection(item) {
+    return `**Dashboard Item ${item.itemNumber}**
+Title: ${item.title}
+JSON ID: ${item.jsonId}
+${item.wordCount ? `Word Count: ${item.wordCount}` : ''}
+Definition: ${item.definition}
+
+How to Assess:
+${item.howToAssess}
+
+Key Questions:   
+${item.keyQuestions}`;
   }
   
   // Function to concatenate sections into a full prompt
@@ -405,43 +480,76 @@ ${sections.outputExample}
   
   // Function to populate the prompt editor fields
   function populatePromptEditorFields(sections) {
-    document.getElementById("prompt-role").value = sections.role;
-    document.getElementById("prompt-context").value = sections.context;
-    document.getElementById("prompt-bias-score").value = sections.overallBiasScore;
-    document.getElementById("prompt-language-tone").value = sections.languageTone;
-    document.getElementById("prompt-framing").value = sections.framingPerspective;
-    document.getElementById("prompt-alternatives").value = sections.alternativePerspectives;
-    document.getElementById("prompt-task").value = sections.task;
+    // Safely set value for each element, checking if it exists first
+    const setValueIfElementExists = (id, value) => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.value = value || '';
+      }
+    };
+    
+    // Safely set text content for each element, checking if it exists first
+    const setTextContentIfElementExists = (id, value) => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.textContent = value || '';
+      }
+    };
+    
+    // Set values for all textarea elements
+    setValueIfElementExists("prompt-role", sections.role);
+    setValueIfElementExists("prompt-context", sections.context);
+    setValueIfElementExists("prompt-bias-score", sections.overallBiasScore);
+    setValueIfElementExists("prompt-language-tone", sections.languageTone);
+    setValueIfElementExists("prompt-framing", sections.framingPerspective);
+    setValueIfElementExists("prompt-alternatives", sections.alternativePerspectives);
+    setValueIfElementExists("prompt-task", sections.task);
     
     // Populate read-only sections
-    document.getElementById("prompt-output-instructions").textContent = sections.outputInstructions;
-    document.getElementById("prompt-output-example").textContent = sections.outputExample;
+    setTextContentIfElementExists("prompt-output-instructions", sections.outputInstructions);
+    setTextContentIfElementExists("prompt-output-example", sections.outputExample);
+    
+    console.log("Populated prompt editor fields successfully");
   }
   
   // Function to get sections from the prompt editor fields
   function getSectionsFromPromptEditorFields() {
+    // Safely get value from each element, checking if it exists first
+    const getValueIfElementExists = (id) => {
+      const element = document.getElementById(id);
+      return element ? element.value.trim() : '';
+    };
+    
+    // Safely get text content from each element, checking if it exists first
+    const getTextContentIfElementExists = (id) => {
+      const element = document.getElementById(id);
+      return element ? element.textContent.trim() : '';
+    };
+    
     return {
-      role: document.getElementById("prompt-role").value.trim(),
-      context: document.getElementById("prompt-context").value.trim(),
-      overallBiasScore: document.getElementById("prompt-bias-score").value.trim(),
-      languageTone: document.getElementById("prompt-language-tone").value.trim(),
-      framingPerspective: document.getElementById("prompt-framing").value.trim(),
-      alternativePerspectives: document.getElementById("prompt-alternatives").value.trim(),
-      task: document.getElementById("prompt-task").value.trim(),
-      outputInstructions: document.getElementById("prompt-output-instructions").textContent.trim(),
-      outputExample: document.getElementById("prompt-output-example").textContent.trim()
+      role: getValueIfElementExists("prompt-role"),
+      context: getValueIfElementExists("prompt-context"),
+      overallBiasScore: getValueIfElementExists("prompt-bias-score"),
+      languageTone: getValueIfElementExists("prompt-language-tone"),
+      framingPerspective: getValueIfElementExists("prompt-framing"),
+      alternativePerspectives: getValueIfElementExists("prompt-alternatives"),
+      task: getValueIfElementExists("prompt-task"),
+      outputInstructions: getTextContentIfElementExists("prompt-output-instructions"),
+      outputExample: getTextContentIfElementExists("prompt-output-example")
     };
   }
   
   // Function to save the prompt to Chrome storage
   async function savePromptToStorage() {
     const sections = getSectionsFromPromptEditorFields();
-    const fullPrompt = concatenatePromptSections(sections);
+    const dashboardItems = window.dashboardItems || [];
+    const fullPrompt = concatenatePromptSectionsWithItems(sections, dashboardItems);
     
     return new Promise((resolve) => {
       chrome.storage.local.set({ 
         biasAnalysisPrompt: fullPrompt,
         promptSections: sections,
+        dashboardItems: dashboardItems,
         lastPromptUpdate: Date.now()
       }, () => {
         resolve();
@@ -458,14 +566,25 @@ ${sections.outputExample}
           // Parse the default prompt into sections
           const sections = parsePromptIntoSections(response.defaultPrompt);
           
+          // Parse the default prompt into dashboard items
+          const dashboardItems = parsePromptIntoDashboardItems(response.defaultPrompt);
+          
+          // Update the global dashboard items
+          window.dashboardItems = dashboardItems;
+          
           // Save to storage
           chrome.storage.local.set({ 
             biasAnalysisPrompt: response.defaultPrompt,
             promptSections: sections,
+            dashboardItems: dashboardItems,
             lastPromptUpdate: Date.now()
           }, () => {
             // Populate the editor fields
             populatePromptEditorFields(sections);
+            
+            // Render the dashboard items list
+            renderDashboardItemsList(dashboardItems);
+            
             resolve();
           });
         } else {
@@ -474,6 +593,190 @@ ${sections.outputExample}
         }
       });
     });
+  }
+  
+  // Function to render the dashboard items list
+  function renderDashboardItemsList(dashboardItems) {
+    const container = document.getElementById("dashboard-items-list");
+    container.innerHTML = ""; // Clear existing content
+    
+    const template = document.getElementById("dashboard-item-template");
+    
+    dashboardItems.forEach((item, index) => {
+      const clone = document.importNode(template.content, true);
+      
+      // Set item number and title
+      clone.querySelector(".item-number").textContent = `Item ${item.itemNumber}:`;
+      clone.querySelector(".item-title").textContent = item.title;
+      
+      // Set data attribute for identifying the item
+      const dashboardItem = clone.querySelector(".dashboard-item");
+      dashboardItem.dataset.itemIndex = index;
+      
+      container.appendChild(clone);
+    });
+    
+    // Set up event listeners for the dashboard items
+    setupDashboardItemsEventListeners();
+  }
+  
+  // Function to set up event listeners for dashboard items
+  function setupDashboardItemsEventListeners() {
+    // Click event for item headers (expand/collapse)
+    document.querySelectorAll(".dashboard-item-header").forEach(header => {
+      header.addEventListener("click", function() {
+        const item = this.closest(".dashboard-item");
+        const content = item.querySelector(".dashboard-item-content");
+        const toggleIcon = this.querySelector(".toggle-icon");
+        const itemIndex = parseInt(item.dataset.itemIndex);
+        
+        // If content is hidden, populate fields before showing
+        if (content.style.display === "none") {
+          populateItemFields(content, window.dashboardItems[itemIndex]);
+          content.style.display = "block";
+          toggleIcon.textContent = "−";
+        } else {
+          content.style.display = "none";
+          toggleIcon.textContent = "+";
+        }
+      });
+    });
+    
+    // Save button click event
+    document.querySelectorAll(".save-item-button").forEach(button => {
+      button.addEventListener("click", function() {
+        const item = this.closest(".dashboard-item");
+        const itemIndex = parseInt(item.dataset.itemIndex);
+        saveItemChanges(item, itemIndex);
+      });
+    });
+    
+    // Cancel button click event
+    document.querySelectorAll(".cancel-item-button").forEach(button => {
+      button.addEventListener("click", function() {
+        const item = this.closest(".dashboard-item");
+        const content = item.querySelector(".dashboard-item-content");
+        const toggleIcon = item.querySelector(".toggle-icon");
+        
+        content.style.display = "none";
+        toggleIcon.textContent = "+";
+      });
+    });
+  }
+  
+  // Function to populate item fields with data
+  function populateItemFields(contentElement, itemData) {
+    contentElement.querySelector(".item-title-input").value = itemData.title;
+    contentElement.querySelector(".item-json-id-input").value = itemData.jsonId;
+    contentElement.querySelector(".item-word-count-input").value = itemData.wordCount;
+    contentElement.querySelector(".item-definition-input").value = itemData.definition;
+    contentElement.querySelector(".item-how-to-assess-input").value = itemData.howToAssess;
+    contentElement.querySelector(".item-key-questions-input").value = itemData.keyQuestions;
+  }
+  
+  // Function to save changes to an item
+  function saveItemChanges(itemElement, itemIndex) {
+    const content = itemElement.querySelector(".dashboard-item-content");
+    const dashboardItem = window.dashboardItems[itemIndex];
+    
+    // Update the item data with form values
+    dashboardItem.title = content.querySelector(".item-title-input").value.trim();
+    dashboardItem.wordCount = content.querySelector(".item-word-count-input").value.trim();
+    dashboardItem.definition = content.querySelector(".item-definition-input").value.trim();
+    dashboardItem.howToAssess = content.querySelector(".item-how-to-assess-input").value.trim();
+    dashboardItem.keyQuestions = content.querySelector(".item-key-questions-input").value.trim();
+    
+    // Update the item title in the header
+    itemElement.querySelector(".item-title").textContent = dashboardItem.title;
+    
+    // Reconstruct the full prompt and save to storage
+    const sections = getSectionsFromPromptEditorFields();
+    const fullPrompt = concatenatePromptSectionsWithItems(sections, window.dashboardItems);
+    
+    chrome.storage.local.set({ 
+      biasAnalysisPrompt: fullPrompt,
+      promptSections: sections,
+      dashboardItems: window.dashboardItems,
+      lastPromptUpdate: Date.now()
+    }, () => {
+      // Show success message
+      alert("Dashboard item saved successfully!");
+      
+      // Close the dropdown
+      content.style.display = "none";
+      itemElement.querySelector(".toggle-icon").textContent = "+";
+    });
+  }
+  
+  // Function to concatenate sections and dashboard items into a full prompt
+  function concatenatePromptSectionsWithItems(sections, dashboardItems) {
+    // Make sure the task section includes the article_text placeholder
+    let taskSection = sections.task;
+    
+    // Check if the task section already contains the placeholder
+    const hasPlaceholder = taskSection.includes("{article_text}");
+    
+    // If not, ensure we add the placeholder in the proper format
+    if (!hasPlaceholder) {
+      // Add the article text placeholder with proper formatting
+      if (!taskSection.includes("Listed below, delimited by triple dashes")) {
+        taskSection = taskSection.trim() + "\n\nListed below, delimited by triple dashes, is the **full text** of the news article you will analyze. **Do not modify it.**\n---\n{article_text}\n---";
+      }
+    }
+    
+    // Build the dashboard items section
+    let dashboardItemsText = "";
+    
+    // Sort dashboard items by item number to ensure correct order
+    const sortedItems = [...dashboardItems].sort((a, b) => parseInt(a.itemNumber) - parseInt(b.itemNumber));
+    
+    sortedItems.forEach((item, index) => {
+      // Format the dashboard item
+      const formattedItem = `
+**Dashboard Item ${item.itemNumber}**
+Title: ${item.title}
+JSON ID: ${item.jsonId}
+${item.wordCount ? `Word Count: ${item.wordCount}` : ''}
+Definition: ${item.definition}
+
+How to Assess:
+${item.howToAssess}
+
+Key Questions:   
+${item.keyQuestions}
+`;
+      
+      dashboardItemsText += formattedItem;
+      
+      // Add separator between items (except after the last one)
+      if (index < sortedItems.length - 1) {
+        dashboardItemsText += "\n\n────────────────────────────────────────────────────────────────────────\n\n";
+      }
+    });
+    
+    // Format the prompt according to the new structure
+    const fullPrompt = `
+Role: ${sections.role}
+
+────────────────────────────────────────────────────────────────────────
+
+Context: ${sections.context}
+
+────────────────────────────────────────────────────────────────────────
+
+${dashboardItemsText}
+
+────────────────────────────────────────────────────────────────────────
+
+Task (step‑by‑step): ${taskSection}
+
+Required JSON Schema
+
+${sections.outputExample}
+`.trim();
+
+    console.log("Rebuilt prompt successfully");
+    return fullPrompt;
   }
   
   // Function to fetch and display the AI bias prompt
@@ -485,8 +788,17 @@ ${sections.outputExample}
       // Parse the prompt into sections
       const sections = parsePromptIntoSections(prompt);
       
+      // Parse the prompt into dashboard items
+      const dashboardItems = parsePromptIntoDashboardItems(prompt);
+      
+      // Store the items in memory for later use
+      window.dashboardItems = dashboardItems;
+      
       // Populate the editor fields
       populatePromptEditorFields(sections);
+      
+      // Render the dashboard items list
+      renderDashboardItemsList(dashboardItems);
       
       // Set up event listeners for the save and reset buttons
       document.getElementById("prompt-save").addEventListener("click", async () => {
