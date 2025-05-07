@@ -49,17 +49,21 @@ The Media Bias Analyzer follows a client-server architecture with the following 
    - Content script extracts article text and metadata
    - Data is sent to background script
 
-2. **Analysis Request**
-   - Background script forwards article text and prompt template from the extension to the Flask backend
-   - Flask backend replaces `{article_text}` in the prompt with the actual article text
-   - Flask backend sends the completed prompt to the OpenAI API
+2. **Prompt Generation**
+   - Extension loads the prompt framework from JSON
+   - Framework sections are concatenated into a complete prompt
+   - The `{article_text}` placeholder is replaced with the actual article text
 
-3. **Analysis Processing**
+3. **Analysis Request**
+   - Background script forwards the complete prompt to the Flask backend
+   - Flask backend sends the prompt to the OpenAI API
+
+4. **Analysis Processing**
    - OpenAI API processes the prompt and returns analysis
    - Flask backend parses and formats the response
    - Formatted analysis is returned to the extension
 
-4. **Results Display**
+5. **Results Display**
    - Extension receives analysis data
    - UI renders the bias meter and analysis sections
    - Results are stored in Chrome storage for history
@@ -83,6 +87,13 @@ The Media Bias Analyzer follows a client-server architecture with the following 
 - Different analysis components (bias score, language tone, etc.) are processed independently
 - Each component has its own display strategy in the UI
 
+### Composite Pattern
+- The prompt framework uses a composite structure where each section is a component
+- Sections can be manipulated independently but combined to form a complete prompt
+
+### Factory Pattern
+- The promptUtils.js file contains factory functions for creating and manipulating prompt components
+
 ## Key Technical Decisions
 
 ### Side Panel UI
@@ -97,6 +108,11 @@ The Media Bias Analyzer follows a client-server architecture with the following 
 - All communication between components uses JSON for consistency
 - Structured data format makes it easy to parse and display results
 
+### JSON-Based Prompt Framework
+- The AI prompt is stored as a structured JSON object instead of a string
+- Each section has metadata (ID, title, order) and content
+- This enables more flexible manipulation and customization of the prompt
+
 ### Expandable UI Sections
 - Analysis results are organized into collapsible sections
 - This prevents information overload while still providing comprehensive analysis
@@ -105,11 +121,20 @@ The Media Bias Analyzer follows a client-server architecture with the following 
 - Analysis history is stored locally using Chrome's storage API
 - This provides persistence without requiring user accounts
 
+### Backward Compatibility
+- The new JSON-based prompt approach maintains compatibility with the old string-based approach
+- This allows for a smooth transition without breaking existing functionality
+
 ## Critical Implementation Paths
 
 ### Article Text Extraction
 ```
 User clicks "Analyze" → Content script extracts text → Text sent to backend → Analysis results displayed
+```
+
+### Prompt Generation
+```
+Framework loaded from JSON → Sections sorted by order → Sections concatenated → Placeholders replaced
 ```
 
 ### History Management
@@ -120,6 +145,11 @@ Analysis completed → Results saved to storage → History page displays entrie
 ### Settings Configuration
 ```
 User opens settings → Changes preferences → Settings saved to storage → Preferences applied to extension
+```
+
+### Prompt Customization
+```
+User edits prompt section → Changes saved to framework → Framework saved to storage → Used in future analyses
 ```
 
 ## Error Handling
@@ -136,6 +166,10 @@ User opens settings → Changes preferences → Settings saved to storage → Pr
    - Handling of token limits and rate limiting
    - Graceful degradation when API is unavailable
 
+4. **Framework Loading Failures**
+   - Fallback to legacy prompt approach if framework loading fails
+   - Error logging for debugging framework issues
+
 ## Security Considerations
 
 1. **API Key Protection**
@@ -149,3 +183,7 @@ User opens settings → Changes preferences → Settings saved to storage → Pr
 3. **Permission Scope**
    - Extension requests only necessary permissions
    - Clear explanation of permission usage
+
+4. **JSON Validation**
+   - Validation of JSON structure before use
+   - Error handling for malformed JSON data

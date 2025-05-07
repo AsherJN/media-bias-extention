@@ -10,6 +10,7 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - **Content Extraction**: ⚠️ Basic implementation
 - **History Feature**: ✅ Complete
 - **Settings Feature**: ✅ Client-side prompt storage and retrieval implemented
+- **JSON Prompt Framework**: ✅ Complete
 - **Documentation**: ✅ Comprehensive README with architecture, features, and roadmap
 - **Deployment**: 🚧 Local development only
 
@@ -35,6 +36,7 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - **Local Storage**: Analysis results persist between browser sessions
 - **History Management**: Users can delete individual entries or clear all history
 - **Documentation**: Comprehensive README with installation, usage, and troubleshooting guides
+- **JSON Prompt Framework**: Structured storage of prompt sections for improved maintainability and customization
 
 ### Backend Integration
 - **Flask API**: Backend server processes analysis requests
@@ -49,18 +51,21 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - **Settings Implementation**: Add user-configurable options
 - **Export Functionality**: Allow users to export analysis results or history
 - **Error Recovery**: Improve handling of network failures and API issues
+- **Prompt Customization UI**: Enhance the UI for customizing prompt sections using the JSON framework
 
 ### Medium-term Features
 - **Backend Deployment**: Move from local-only to a hosted solution
 - **User Accounts**: Optional accounts for syncing across devices
 - **Sentiment Analysis**: Add emotional tone evaluation
 - **Improved Visualization**: Enhanced data visualization for analysis results
+- **Dashboard Customization**: Allow users to add, remove, or reorder dashboard items
 
 ### Long-term Enhancements
 - **Historical Tracking**: Track bias patterns across publications over time
 - **Recommendation Engine**: Suggest alternative sources
 - **Cross-browser Support**: Expand beyond Chrome
 - **Mobile Companion**: Create a mobile app version
+- **Prompt Template Library**: Create a library of prompt templates for different types of analysis
 
 ## Known Issues
 
@@ -70,12 +75,14 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 3. **API Dependency**: Reliance on OpenAI API introduces potential points of failure
 4. **Performance Variability**: Analysis time can vary based on API response time
 5. **~~OpenAI Package Compatibility~~**: ~~The backend required an update from OpenAI package version 0.28.1 to 1.12.0 to resolve import compatibility issues~~ (Resolved)
+6. **JSON Schema Evolution**: Need to handle schema changes in the prompt framework as new features are added
 
 ### User Experience Issues
 1. **Initial Setup Complexity**: Requires local server setup and API key
 2. **Limited Settings**: Few user-configurable options currently available
 3. **No Offline Mode**: Cannot function without internet connection
 4. **Limited Feedback Mechanisms**: No way for users to report inaccurate analyses
+5. **Prompt Customization Complexity**: Current prompt editing interface could be more intuitive
 
 ### Business/Product Issues
 1. **Cost Management**: OpenAI API usage incurs costs that need to be managed
@@ -90,18 +97,21 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - **Expanded Analysis**: Added multiple dimensions of analysis
 - **Side Panel Migration**: Moved from popup to side panel for better user experience
 - **Progressive Disclosure**: Implemented collapsible sections to manage information density
+- **Customization Interface**: Added interfaces for customizing the prompt
 
 ### Technical Evolution
 - **Manifest V3**: Updated to latest Chrome extension manifest version
 - **API Integration**: Moved from earlier GPT models to GPT-4o
 - **Storage Strategy**: Implemented local storage with history management
 - **Error Handling**: Improved robustness with better error handling
+- **Prompt Architecture**: Evolved from string-based to JSON-based prompt structure
 
 ### Feature Prioritization
 - **Core Analysis**: Initially focused on basic bias detection
 - **Comprehensive Insights**: Expanded to include multiple analysis dimensions
 - **History Tracking**: Added to enhance user experience and continuity
 - **Settings Framework**: Laid groundwork for user customization
+- **Prompt Modularity**: Restructured prompt to enable more flexible customization
 
 ## Milestones and Achievements
 
@@ -116,9 +126,11 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - History tracking and management
 - Settings framework
 - Improved backend integration with GPT-4o
+- JSON-based prompt framework for improved maintainability
 
 ### Future Versions
 - **Version 2.1**: Enhanced text extraction and settings implementation
+- **Version 2.2**: Improved prompt customization UI using JSON framework
 - **Version 2.5**: Deployed backend and export functionality
 - **Version 3.0**: User accounts and advanced analytics
 
@@ -128,13 +140,17 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - Chrome's side panel API provides better UX for content-heavy extensions
 - Balancing API usage with analysis depth is crucial for cost management
 - Local storage is effective for history but has limitations for cross-device use
+- Structured JSON provides a more maintainable way to manage complex prompts
+- Backward compatibility requires careful planning when introducing new architectural patterns
 
 ### Product Lessons
 - Users value multiple dimensions of analysis beyond simple bias scores
 - History feature enhances the perceived value of the tool
 - Setup complexity is a barrier to adoption that needs addressing
+- Customization options need to be balanced with simplicity to avoid overwhelming users
 
 ### Process Lessons
 - Iterative development with focused features works well for this project
 - Documentation is essential for maintaining momentum
 - Testing with diverse news sources reveals edge cases and improvement opportunities
+- Refactoring core components (like the prompt system) requires careful planning to avoid regressions

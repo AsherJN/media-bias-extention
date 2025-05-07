@@ -240,32 +240,55 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
   
+  // Import the prompt utilities if not already available
+  if (typeof loadPromptFramework === 'undefined') {
+    // In a browser context, we need to load the script
+    const script = document.createElement('script');
+    script.src = 'promptUtils.js';
+    document.head.appendChild(script);
+    
+    // Wait for script to load
+    await new Promise(resolve => {
+      script.onload = resolve;
+    });
+  }
+  
   // Function to get the stored prompt from Chrome storage
   async function getStoredPrompt() {
-    return new Promise((resolve) => {
-      chrome.storage.local.get(['biasAnalysisPrompt'], (data) => {
-        if (data.biasAnalysisPrompt) {
-          resolve(data.biasAnalysisPrompt);
-        } else {
-          // If prompt not found in storage, fetch from backend as fallback
-          fetchPromptFromBackend()
-            .then(prompt => {
-              // Store the fetched prompt for future use
-              chrome.storage.local.set({ biasAnalysisPrompt: prompt });
-              resolve(prompt);
-            })
-            .catch(error => {
-              console.error("Error fetching prompt from backend:", error);
-              // Use a minimal fallback prompt if all else fails
-              const fallbackPrompt = `
+    return new Promise(async (resolve) => {
+      try {
+        // First try to get the prompt framework and generate the prompt
+        const framework = await loadPromptFramework();
+        const generatedPrompt = concatenatePrompt(framework, "{article_text}");
+        resolve(generatedPrompt);
+      } catch (error) {
+        console.error("Error generating prompt from framework:", error);
+        
+        // Fallback to the old method if framework approach fails
+        chrome.storage.local.get(['biasAnalysisPrompt'], (data) => {
+          if (data.biasAnalysisPrompt) {
+            resolve(data.biasAnalysisPrompt);
+          } else {
+            // If prompt not found in storage, fetch from backend as fallback
+            fetchPromptFromBackend()
+              .then(prompt => {
+                // Store the fetched prompt for future use
+                chrome.storage.local.set({ biasAnalysisPrompt: prompt });
+                resolve(prompt);
+              })
+              .catch(error => {
+                console.error("Error fetching prompt from backend:", error);
+                // Use a minimal fallback prompt if all else fails
+                const fallbackPrompt = `
 Role: You are a highly vigilant internet watchdog who's main priority is to assist users in navigating media bias that may be present in the news/media that people consume.
 
 [This is a preview of the AI prompt used for bias analysis. The full prompt contains detailed instructions for analyzing article bias across multiple dimensions.]
 `;
-              resolve(fallbackPrompt);
-            });
-        }
-      });
+                resolve(fallbackPrompt);
+              });
+          }
+        });
+      }
     });
   }
 
@@ -841,8 +864,20 @@ document.getElementById("analyze-button").addEventListener("click", async () => 
             // Update progress status
             updateProgressStatus("Preparing analysis...");
             
-            // Get the prompt from Chrome storage
-            const prompt = await getStoredPrompt();
+            // Load the prompt framework
+            let prompt;
+            try {
+              // Try to get the prompt using the new framework approach
+              const framework = await loadPromptFramework();
+              prompt = concatenatePrompt(framework, response.articleText);
+              console.log("Using prompt framework for analysis");
+            } catch (error) {
+              console.error("Error using prompt framework:", error);
+              // Fall back to the old method if framework approach fails
+              prompt = await getStoredPrompt();
+              prompt = prompt.replace("{article_text}", response.articleText);
+              console.log("Using legacy prompt method for analysis");
+            }
             
             // Update progress status
             updateProgressStatus("Sending to AI for analysis...");
@@ -905,15 +940,18 @@ document.getElementById("analyze-button").addEventListener("click", async () => 
             }
           } catch (error) {
             loadingDiv.style.display = "none"; // Hide spinner
+            progressContainer.style.display = "none"; // Hide progress updates
             alert("Error fetching analysis: " + error.message);
           }
         } else {
           loadingDiv.style.display = "none"; // Hide spinner
+          progressContainer.style.display = "none"; // Hide progress updates
           alert("Could not retrieve article text.");
         }
       });
     } catch (error) {
       loadingDiv.style.display = "none"; // Hide spinner
+      progressContainer.style.display = "none"; // Hide progress updates
       alert("Error: " + error.message);
     }
   });

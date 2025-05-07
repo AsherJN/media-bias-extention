@@ -10,6 +10,9 @@
   - `chrome.tabs`: For interacting with the current browser tab
   - `chrome.runtime`: For background script communication
 - **Fetch API**: For making HTTP requests to the backend
+- **JSON**: For structured data storage and manipulation
+  - Used for prompt framework organization
+  - Used for communication between components
 
 ### Backend (Flask Server)
 - **Python**: Primary programming language
@@ -123,8 +126,11 @@ media-bias-analyzer/
 ├── popup.html                 # Main HTML for the side panel UI
 ├── popup.css                  # Styles for the side panel UI
 ├── popup.js                   # Main JavaScript for the UI functionality
+├── promptUtils.js             # Utility functions for working with the prompt framework
+├── promptFramework.json       # JSON structure for the AI prompt
 ├── contentScript.js           # Script that runs in the context of web pages
 ├── background.js              # Background script for extension functionality
+├── aiBiasFramework.txt        # Original text version of the AI prompt (for reference)
 └── README.md                  # Project documentation
 ```
 
@@ -141,11 +147,29 @@ media-bias-analyzer/
 - **Key Data Stored**:
   - `analysisResults`: Current analysis results
   - `analysisHistory`: Array of previous analyses with metadata
+  - `promptFramework`: JSON structure for the AI prompt
+  - `biasAnalysisPrompt`: Legacy string version of the prompt (for backward compatibility)
 
 ### Content Extraction Strategy
 - Simple paragraph extraction using `document.querySelectorAll("p")`
 - Extracts article metadata (title, URL, favicon)
 - Future improvement opportunity: More sophisticated extraction logic
+
+### Prompt Framework Usage
+- **JSON Structure**: Organizes the prompt into distinct sections with metadata
+- **Section Properties**:
+  - `id`: Unique identifier for the section
+  - `title`: Display title for the section
+  - `content`: The actual content of the section
+  - `order`: Position of the section in the concatenated prompt
+  - `has_placeholder`: Boolean indicating if the section contains a placeholder
+  - `placeholder`: The placeholder text to be replaced (e.g., `{article_text}`)
+  - `json_id`: For dashboard items, the ID used in the JSON response
+- **Utility Functions**:
+  - `loadPromptFramework()`: Loads the framework from JSON
+  - `concatenatePrompt()`: Combines sections into a complete prompt string
+  - `updatePromptSection()`: Updates specific sections
+  - `savePromptFramework()`: Persists changes to storage
 
 ## Security Considerations
 
@@ -170,3 +194,5 @@ media-bias-analyzer/
 - **Analysis Time**: Dependent on OpenAI API response time
 - **UI Responsiveness**: Asynchronous operations to keep UI responsive
 - **Storage Limits**: History limited to 50 entries to prevent excessive storage use
+- **JSON Parsing**: Efficient parsing and manipulation of JSON data structures
+- **Backward Compatibility**: Fallback mechanisms for handling legacy prompt format

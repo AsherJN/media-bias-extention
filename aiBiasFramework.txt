@@ -169,10 +169,11 @@ Key Questions: 
 
 ────────────────────────────────────────────────────────────────────────
 
-Listed below, delimited by triple dashes, is the **full text** of the news article you will analyze. **Do not modify it.**  
----  
+Article Text: Listed below is the **full text** of the news article you will analyze. **Do not modify it.**  
+
 {article_text}  
----
+
+────────────────────────────────────────────────────────────────────────
 
 Task (step‑by‑step):  
 1. **Read** the article thoroughly; do not skim.  
