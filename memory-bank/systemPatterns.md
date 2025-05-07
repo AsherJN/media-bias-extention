@@ -147,9 +147,9 @@ Analysis completed → Results saved to storage → History page displays entrie
 User opens settings → Changes preferences → Settings saved to storage → Preferences applied to extension
 ```
 
-### Prompt Customization
+### Prompt Framework Usage
 ```
-User edits prompt section → Changes saved to framework → Framework saved to storage → Used in future analyses
+Framework loaded from JSON → Sections sorted by order → Sections concatenated → Placeholders replaced → Used in analysis
 ```
 
 ## Error Handling

@@ -29,7 +29,7 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - **Progress Updates**: Text prompts fade in/out at key analysis milestones alongside the loading spinner
 - **UI Spacing**: Consistent spacing between header and bias score div for improved visual alignment
 - **Responsive Layout**: UI adapts to the side panel dimensions
-- **Customizable Prompt Editor**: Separate editable fields for each prompt section, auto-save, reset-to-default, and placeholder preservation
+- **Prompt View Page**: Simplified placeholder page for future JSON-based prompt editing implementation
 
 ### Data Management
 - **History Tracking**: Previously analyzed articles are saved and can be revisited

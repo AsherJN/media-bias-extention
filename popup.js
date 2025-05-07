@@ -126,119 +126,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Show prompt view page when view prompt button is clicked
   viewPromptButton.addEventListener("click", () => {
     promptViewPage.style.display = "flex";
-    fetchAndDisplayPrompt();
   });
   
   // Return to settings page when back button is clicked
   promptBack.addEventListener("click", () => {
     promptViewPage.style.display = "none";
   });
-  
-  // Advanced Settings page functionality
-  const advancedSettingsButton = document.getElementById("advanced-settings-button");
-  const advancedSettingsPage = document.getElementById("advanced-settings-page");
-  const advancedSettingsBack = document.getElementById("advanced-settings-back");
-  
-  // Show advanced settings page when advanced settings button is clicked
-  advancedSettingsButton.addEventListener("click", () => {
-    advancedSettingsPage.style.display = "flex";
-    loadFullPrompt();
-  });
-  
-  // Return to prompt view page when back button is clicked
-  advancedSettingsBack.addEventListener("click", () => {
-    advancedSettingsPage.style.display = "none";
-  });
-  
-  // Function to load the full prompt into the textarea
-  async function loadFullPrompt() {
-    try {
-      // Get the full prompt from storage
-      const prompt = await getStoredPrompt();
-      
-      // Display the full prompt in the textarea
-      document.getElementById("full-prompt-textarea").value = prompt;
-      
-      // Set up event listeners for save and reset buttons
-      document.getElementById("full-prompt-save").addEventListener("click", saveFullPrompt);
-      document.getElementById("full-prompt-reset").addEventListener("click", resetFullPrompt);
-    } catch (error) {
-      console.error("Error loading full prompt:", error);
-      alert("Error loading prompt: " + error.message);
-    }
-  }
-  
-  // Function to save the full prompt
-  async function saveFullPrompt() {
-    try {
-      const fullPromptTextarea = document.getElementById("full-prompt-textarea");
-      const fullPrompt = fullPromptTextarea.value.trim();
-      
-      // Validate that the prompt contains the article_text placeholder
-      if (!fullPrompt.includes("{article_text}")) {
-        if (!confirm("Warning: The prompt does not contain the {article_text} placeholder. This is required for the extension to work properly. Do you want to add it automatically?")) {
-          return; // User cancelled
-        }
-        
-        // Add the placeholder at the end of the prompt
-        fullPromptTextarea.value = fullPrompt + "\n\n{article_text}";
-      }
-      
-      // Save the full prompt to storage
-      chrome.storage.local.set({ 
-        biasAnalysisPrompt: fullPromptTextarea.value,
-        lastPromptUpdate: Date.now()
-      }, () => {
-        alert("Full prompt saved successfully!");
-        
-        // Parse the new prompt into sections and update storage
-        const sections = parsePromptIntoSections(fullPromptTextarea.value);
-        chrome.storage.local.set({ promptSections: sections });
-        
-        // Update the section textareas in the prompt view page
-        populatePromptEditorFields(sections);
-      });
-    } catch (error) {
-      console.error("Error saving full prompt:", error);
-      alert("Error saving prompt: " + error.message);
-    }
-  }
-  
-  // Function to reset the full prompt to default
-  async function resetFullPrompt() {
-    try {
-      if (confirm("Are you sure you want to reset the prompt to default? All customizations will be lost.")) {
-        // Get the default prompt from background script
-        chrome.runtime.sendMessage({ action: "getDefaultPrompt" }, (response) => {
-          if (response && response.defaultPrompt) {
-            // Display the default prompt in the textarea
-            document.getElementById("full-prompt-textarea").value = response.defaultPrompt;
-            
-            // Save the default prompt to storage
-            chrome.storage.local.set({ 
-              biasAnalysisPrompt: response.defaultPrompt,
-              lastPromptUpdate: Date.now()
-            }, () => {
-              alert("Prompt reset to default!");
-              
-              // Parse the default prompt into sections and update storage
-              const sections = parsePromptIntoSections(response.defaultPrompt);
-              chrome.storage.local.set({ promptSections: sections });
-              
-              // Update the section textareas in the prompt view page
-              populatePromptEditorFields(sections);
-            });
-          } else {
-            console.error("Failed to get default prompt");
-            alert("Failed to get default prompt");
-          }
-        });
-      }
-    } catch (error) {
-      console.error("Error resetting full prompt:", error);
-      alert("Error resetting prompt: " + error.message);
-    }
-  }
   
   // Import the prompt utilities if not already available
   if (typeof loadPromptFramework === 'undefined') {
@@ -251,292 +144,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     await new Promise(resolve => {
       script.onload = resolve;
     });
-  }
-  
-  // Function to get the stored prompt from Chrome storage
-  async function getStoredPrompt() {
-    return new Promise(async (resolve) => {
-      try {
-        // First try to get the prompt framework and generate the prompt
-        const framework = await loadPromptFramework();
-        const generatedPrompt = concatenatePrompt(framework, "{article_text}");
-        resolve(generatedPrompt);
-      } catch (error) {
-        console.error("Error generating prompt from framework:", error);
-        
-        // Fallback to the old method if framework approach fails
-        chrome.storage.local.get(['biasAnalysisPrompt'], (data) => {
-          if (data.biasAnalysisPrompt) {
-            resolve(data.biasAnalysisPrompt);
-          } else {
-            // If prompt not found in storage, fetch from backend as fallback
-            fetchPromptFromBackend()
-              .then(prompt => {
-                // Store the fetched prompt for future use
-                chrome.storage.local.set({ biasAnalysisPrompt: prompt });
-                resolve(prompt);
-              })
-              .catch(error => {
-                console.error("Error fetching prompt from backend:", error);
-                // Use a minimal fallback prompt if all else fails
-                const fallbackPrompt = `
-Role: You are a highly vigilant internet watchdog who's main priority is to assist users in navigating media bias that may be present in the news/media that people consume.
-
-[This is a preview of the AI prompt used for bias analysis. The full prompt contains detailed instructions for analyzing article bias across multiple dimensions.]
-`;
-                resolve(fallbackPrompt);
-              });
-          }
-        });
-      }
-    });
-  }
-
-  // Function to fetch the prompt from the backend (used as fallback)
-  async function fetchPromptFromBackend() {
-    const response = await fetch("http://127.0.0.1:5000/get-prompt");
-    
-    if (!response.ok) {
-      throw new Error(`Server error: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    
-    if (data.error) {
-      throw new Error(data.error);
-    }
-    
-    return data.prompt;
-  }
-
-  // Function to parse the prompt into sections
-  function parsePromptIntoSections(prompt) {
-    // Default empty sections
-    const sections = {
-      role: "",
-      context: "",
-      overallBiasScore: "",
-      languageTone: "",
-      framingPerspective: "",
-      alternativePerspectives: "",
-      task: "",
-      outputInstructions: "",
-      outputExample: ""
-    };
-    
-    // Regular expressions to match each section
-    const roleRegex = /Role:\s*([\s\S]*?)(?=Context:|────+|$)/;
-    const contextRegex = /Context:\s*([\s\S]*?)(?=\*\*Dashboard Item 1\*\*|────+|$)/;
-    const biasScoreRegex = /\*\*Dashboard Item 1\*\*([\s\S]*?)(?=\*\*Dashboard Item 2\*\*|────+|$)/;
-    const analysisSummaryRegex = /\*\*Dashboard Item 2\*\*([\s\S]*?)(?=\*\*Dashboard Item 3\*\*|────+|$)/;
-    const articleSummaryRegex = /\*\*Dashboard Item 3\*\*([\s\S]*?)(?=\*\*Dashboard Item 4\*\*|────+|$)/;
-    const historicalContextRegex = /\*\*Dashboard Item 4\*\*([\s\S]*?)(?=\*\*Dashboard Item 5\*\*|────+|$)/;
-    const languageToneRegex = /\*\*Dashboard Item 5\*\*([\s\S]*?)(?=\*\*Dashboard Item 6\*\*|────+|$)/;
-    const framingRegex = /\*\*Dashboard Item 6\*\*([\s\S]*?)(?=\*\*Dashboard Item 7\*\*|────+|$)/;
-    const alternativesRegex = /\*\*Dashboard Item 7\*\*([\s\S]*?)(?=\*\*Dashboard Item 8\*\*|────+|$)/;
-    const publisherBiasRegex = /\*\*Dashboard Item 8\*\*([\s\S]*?)(?=Listed below, delimited by triple dashes|────+|$)/;
-    const taskRegex = /Task \(step‑by‑step\):\s*([\s\S]*?)(?=Required JSON Schema|$)/;
-    const outputSchemaRegex = /Required JSON Schema\s*([\s\S]*?)(?=$)/;
-    
-    // Extract each section using regex
-    const roleMatch = prompt.match(roleRegex);
-    if (roleMatch) sections.role = roleMatch[1].trim();
-    
-    const contextMatch = prompt.match(contextRegex);
-    if (contextMatch) sections.context = contextMatch[1].trim();
-    
-    // For the bias score, we'll use Dashboard Item 1
-    const biasScoreMatch = prompt.match(biasScoreRegex);
-    if (biasScoreMatch) sections.overallBiasScore = biasScoreMatch[0].trim();
-    
-    // For language tone, we'll use Dashboard Item 5
-    const languageToneMatch = prompt.match(languageToneRegex);
-    if (languageToneMatch) sections.languageTone = languageToneMatch[0].trim();
-    
-    // For framing perspective, we'll use Dashboard Item 6
-    const framingMatch = prompt.match(framingRegex);
-    if (framingMatch) sections.framingPerspective = framingMatch[0].trim();
-    
-    // For alternative perspectives, we'll use Dashboard Item 7
-    const alternativesMatch = prompt.match(alternativesRegex);
-    if (alternativesMatch) sections.alternativePerspectives = alternativesMatch[0].trim();
-    
-    // For task, we'll use the Task section
-    const taskMatch = prompt.match(taskRegex);
-    if (taskMatch) sections.task = taskMatch[1].trim();
-    
-    // For output instructions and example, we'll extract from the JSON schema
-    const outputSchemaMatch = prompt.match(outputSchemaRegex);
-    if (outputSchemaMatch) {
-      sections.outputInstructions = "Your output is strictly supposed to be in JSON formatting and your output should contain nothing else beyond the JSON content.";
-      sections.outputExample = outputSchemaMatch[1].trim();
-    }
-    
-    return sections;
-  }
-  
-  // Function to concatenate sections into a full prompt
-  function concatenatePromptSections(sections) {
-    // Make sure the task section includes the article_text placeholder
-    let taskSection = sections.task;
-    
-    // Check if the task section or alternatives section already contains the placeholder
-    const hasPlaceholder = taskSection.includes("{article_text}") || 
-                          sections.alternativePerspectives.includes("{article_text}");
-    
-    // If not, ensure we add the placeholder in the proper format
-    if (!hasPlaceholder) {
-      // Add the article text placeholder with proper formatting
-      if (!taskSection.includes("Listed below, delimited by triple dashes")) {
-        taskSection = taskSection.trim() + "\n\nListed below, delimited by triple dashes, is the **full text** of the news article you will analyze. **Do not modify it.**\n---\n{article_text}\n---";
-      }
-    }
-    
-    // Format the prompt according to the new structure
-    return `
-Role: ${sections.role}
-
-────────────────────────────────────────────────────────────────────────
-
-Context: ${sections.context}
-
-────────────────────────────────────────────────────────────────────────
-
-${sections.overallBiasScore}
-
-────────────────────────────────────────────────────────────────────────
-
-${sections.languageTone}
-
-────────────────────────────────────────────────────────────────────────
-
-${sections.framingPerspective}
-
-────────────────────────────────────────────────────────────────────────
-
-${sections.alternativePerspectives}
-
-────────────────────────────────────────────────────────────────────────
-
-Task (step‑by‑step): ${taskSection}
-
-Required JSON Schema
-
-${sections.outputExample}
-`.trim();
-  }
-  
-  // Function to populate the prompt editor fields
-  function populatePromptEditorFields(sections) {
-    document.getElementById("prompt-role").value = sections.role;
-    document.getElementById("prompt-context").value = sections.context;
-    document.getElementById("prompt-bias-score").value = sections.overallBiasScore;
-    document.getElementById("prompt-language-tone").value = sections.languageTone;
-    document.getElementById("prompt-framing").value = sections.framingPerspective;
-    document.getElementById("prompt-alternatives").value = sections.alternativePerspectives;
-    document.getElementById("prompt-task").value = sections.task;
-    
-    // Populate read-only sections
-    document.getElementById("prompt-output-instructions").textContent = sections.outputInstructions;
-    document.getElementById("prompt-output-example").textContent = sections.outputExample;
-  }
-  
-  // Function to get sections from the prompt editor fields
-  function getSectionsFromPromptEditorFields() {
-    return {
-      role: document.getElementById("prompt-role").value.trim(),
-      context: document.getElementById("prompt-context").value.trim(),
-      overallBiasScore: document.getElementById("prompt-bias-score").value.trim(),
-      languageTone: document.getElementById("prompt-language-tone").value.trim(),
-      framingPerspective: document.getElementById("prompt-framing").value.trim(),
-      alternativePerspectives: document.getElementById("prompt-alternatives").value.trim(),
-      task: document.getElementById("prompt-task").value.trim(),
-      outputInstructions: document.getElementById("prompt-output-instructions").textContent.trim(),
-      outputExample: document.getElementById("prompt-output-example").textContent.trim()
-    };
-  }
-  
-  // Function to save the prompt to Chrome storage
-  async function savePromptToStorage() {
-    const sections = getSectionsFromPromptEditorFields();
-    const fullPrompt = concatenatePromptSections(sections);
-    
-    return new Promise((resolve) => {
-      chrome.storage.local.set({ 
-        biasAnalysisPrompt: fullPrompt,
-        promptSections: sections,
-        lastPromptUpdate: Date.now()
-      }, () => {
-        resolve();
-      });
-    });
-  }
-  
-  // Function to reset the prompt to default
-  async function resetPromptToDefault() {
-    return new Promise((resolve) => {
-      // Get the default prompt from background script
-      chrome.runtime.sendMessage({ action: "getDefaultPrompt" }, (response) => {
-        if (response && response.defaultPrompt) {
-          // Parse the default prompt into sections
-          const sections = parsePromptIntoSections(response.defaultPrompt);
-          
-          // Save to storage
-          chrome.storage.local.set({ 
-            biasAnalysisPrompt: response.defaultPrompt,
-            promptSections: sections,
-            lastPromptUpdate: Date.now()
-          }, () => {
-            // Populate the editor fields
-            populatePromptEditorFields(sections);
-            resolve();
-          });
-        } else {
-          console.error("Failed to get default prompt");
-          resolve();
-        }
-      });
-    });
-  }
-  
-  // Function to fetch and display the AI bias prompt
-  async function fetchAndDisplayPrompt() {
-    try {
-      // Get prompt from Chrome storage
-      const prompt = await getStoredPrompt();
-      
-      // Parse the prompt into sections
-      const sections = parsePromptIntoSections(prompt);
-      
-      // Populate the editor fields
-      populatePromptEditorFields(sections);
-      
-      // Set up event listeners for the save and reset buttons
-      document.getElementById("prompt-save").addEventListener("click", async () => {
-        await savePromptToStorage();
-        alert("Prompt saved successfully!");
-      });
-      
-      document.getElementById("prompt-reset").addEventListener("click", async () => {
-        if (confirm("Are you sure you want to reset the prompt to default? All customizations will be lost.")) {
-          await resetPromptToDefault();
-          alert("Prompt reset to default!");
-        }
-      });
-      
-      // Set up auto-save for text fields
-      const textareas = document.querySelectorAll(".prompt-textarea");
-      textareas.forEach(textarea => {
-        textarea.addEventListener("blur", async () => {
-          await savePromptToStorage();
-          console.log("Prompt auto-saved");
-        });
-      });
-      
-    } catch (error) {
-      console.error("Error fetching prompt:", error);
-      alert("Error loading prompt: " + error.message);
-    }
   }
   
   // History menu functionality
@@ -871,72 +478,42 @@ document.getElementById("analyze-button").addEventListener("click", async () => 
               const framework = await loadPromptFramework();
               prompt = concatenatePrompt(framework, response.articleText);
               console.log("Using prompt framework for analysis");
+              
+              // Continue with analysis after prompt is ready
+              await continueWithAnalysis(prompt, response, tab, loadingDiv, progressContainer, resultsDiv);
             } catch (error) {
               console.error("Error using prompt framework:", error);
-              // Fall back to the old method if framework approach fails
-              prompt = await getStoredPrompt();
-              prompt = prompt.replace("{article_text}", response.articleText);
-              console.log("Using legacy prompt method for analysis");
-            }
-            
-            // Update progress status
-            updateProgressStatus("Sending to AI for analysis...");
-            
-            // Send the article text AND prompt to your backend server
-            const res = await fetch("http://127.0.0.1:5000/analyze", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ 
-                text: response.articleText,
-                prompt: prompt
-              }),
-            });
+              // Fall back to a simple prompt if framework approach fails
+              chrome.storage.local.get(['biasAnalysisPrompt'], async (data) => {
+                if (data.biasAnalysisPrompt) {
+                  prompt = data.biasAnalysisPrompt.replace("{article_text}", response.articleText);
+                } else {
+                  // Use a minimal fallback prompt if all else fails
+                  prompt = `
+Role: You are a highly vigilant internet watchdog who's main priority is to assist users in navigating media bias that may be present in the news/media that people consume.
 
-            if (!res.ok) {
-              throw new Error(`Server error: ${res.statusText}`);
-            }
+Analyze the following article text and provide a bias score from -5 (very liberal) to +5 (very conservative):
 
-            // Update progress status
-            updateProgressStatus("Processing AI response...");
-            
-            const analysis = await res.json();
+${response.articleText}
 
-            if (analysis.error) {
-              loadingDiv.style.display = "none"; // Hide spinner
-              progressContainer.style.display = "none"; // Hide progress updates
-              alert("Error: " + analysis.error);
-            } else {
-              // Update progress status
-              updateProgressStatus("Building your dashboard...");
-              
-              // Short delay to allow the user to see the final progress message
-              setTimeout(() => {
-                loadingDiv.style.display = "none"; // Hide spinner
-                progressContainer.style.display = "none"; // Hide progress updates
-                resultsDiv.style.display = "block"; // Show results
-                // Display the results in the dashboard
-                displayResults(analysis);
-              }, 800);
-              // Save results to chrome.storage.local for persistence
-              chrome.storage.local.set({ 
-                analysisResults: analysis,
-                analyzedUrl: tab.url // Store the current URL with the analysis results
+Provide your analysis in JSON format with the following fields:
+{
+  "bias_score": [integer -5 to +5],
+  "analysis_summary": "brief summary of bias analysis",
+  "dashboard_item_3": "article summary",
+  "dashboard_item_4": "historical context",
+  "dashboard_item_5": "language and tone analysis",
+  "dashboard_item_6": "framing and perspective analysis",
+  "dashboard_item_7": "alternative perspectives",
+  "dashboard_item_8": "publisher bias information"
+}
+`;
+                }
+                console.log("Using legacy prompt method for analysis");
+                
+                // Continue with analysis after prompt is ready
+                await continueWithAnalysis(prompt, response, tab, loadingDiv, progressContainer, resultsDiv);
               });
-              
-              // Hide notification banner if it's visible
-              const notificationBanner = document.getElementById("notification-banner");
-              notificationBanner.style.display = "none";
-              notificationBanner.style.opacity = "0";
-              
-              // Reset padding when banner is hidden
-              // document.getElementById("results").style.paddingTop = "125px";
-              
-              // Save to history if article info is available
-              if (response.articleInfo) {
-                saveToHistory(analysis, response.articleInfo);
-              }
             }
           } catch (error) {
             loadingDiv.style.display = "none"; // Hide spinner
@@ -955,6 +532,75 @@ document.getElementById("analyze-button").addEventListener("click", async () => 
       alert("Error: " + error.message);
     }
   });
+  
+  // Function to continue with analysis after prompt is ready
+  async function continueWithAnalysis(prompt, response, tab, loadingDiv, progressContainer, resultsDiv) {
+    try {
+      // Update progress status
+      updateProgressStatus("Sending to AI for analysis...");
+      
+      // Send the article text AND prompt to your backend server
+      const res = await fetch("http://127.0.0.1:5000/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          text: response.articleText,
+          prompt: prompt
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Server error: ${res.statusText}`);
+      }
+
+      // Update progress status
+      updateProgressStatus("Processing AI response...");
+      
+      const analysis = await res.json();
+
+      if (analysis.error) {
+        loadingDiv.style.display = "none"; // Hide spinner
+        progressContainer.style.display = "none"; // Hide progress updates
+        alert("Error: " + analysis.error);
+      } else {
+        // Update progress status
+        updateProgressStatus("Building your dashboard...");
+        
+        // Short delay to allow the user to see the final progress message
+        setTimeout(() => {
+          loadingDiv.style.display = "none"; // Hide spinner
+          progressContainer.style.display = "none"; // Hide progress updates
+          resultsDiv.style.display = "block"; // Show results
+          // Display the results in the dashboard
+          displayResults(analysis);
+        }, 800);
+        // Save results to chrome.storage.local for persistence
+        chrome.storage.local.set({ 
+          analysisResults: analysis,
+          analyzedUrl: tab.url // Store the current URL with the analysis results
+        });
+        
+        // Hide notification banner if it's visible
+        const notificationBanner = document.getElementById("notification-banner");
+        notificationBanner.style.display = "none";
+        notificationBanner.style.opacity = "0";
+        
+        // Reset padding when banner is hidden
+        // document.getElementById("results").style.paddingTop = "125px";
+        
+        // Save to history if article info is available
+        if (response.articleInfo) {
+          saveToHistory(analysis, response.articleInfo);
+        }
+      }
+    } catch (error) {
+      loadingDiv.style.display = "none"; // Hide spinner
+      progressContainer.style.display = "none"; // Hide progress updates
+      alert("Error fetching analysis: " + error.message);
+    }
+  }
 });
 
 function displayResults(analysis) {

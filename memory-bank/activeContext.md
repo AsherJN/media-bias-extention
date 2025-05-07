@@ -28,7 +28,8 @@ The Media Bias Analyzer is currently at version 2.0, with a focus on the followi
 - Added collapsible sections for different analysis components to prevent information overload
 - Designed a history page with entry management functionality
 - Created a settings page framework for future configuration options
-- Added Advanced Settings page to prompt view for full concatenated prompt editing
+- Removed the section-based prompt editing UI and Advanced Settings page
+- Added a placeholder message for the "View AI Bias Prompt" page for future implementation
 - Added task progress updates: fading text prompts at key analysis milestones alongside loading spinner
 - Fixed spacing between header div and bias score div for a consistent, polished layout
 
@@ -42,6 +43,8 @@ The Media Bias Analyzer is currently at version 2.0, with a focus on the followi
 - Converted the AI bias prompt from a string to a structured JSON format (promptFramework.json)
 - Created utility functions for working with the JSON prompt framework (promptUtils.js)
 - Updated the extension to use the new JSON-based prompt approach while maintaining backward compatibility
+- Removed all JavaScript functions related to section-based prompt editing
+- Improved asynchronous handling in the analyze button click handler
 
 ### Backend Refinements
 - Updated the OpenAI integration to use GPT-4o
