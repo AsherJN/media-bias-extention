@@ -10,6 +10,7 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - **Content Extraction**: ⚠️ Basic implementation
 - **History Feature**: ✅ Complete
 - **Settings Feature**: ✅ Client-side prompt storage and retrieval implemented
+- **Prompt Structure**: ✅ Converted to structured JSON format for customization
 - **Documentation**: ✅ Comprehensive README with architecture, features, and roadmap
 - **Deployment**: 🚧 Local development only
 
@@ -20,6 +21,12 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - **Bias Detection**: The system evaluates media bias on a scale from -5 to +5
 - **Comprehensive Insights**: Multiple dimensions of analysis are provided
 - **Side Panel UI**: Results are displayed in a clean, modern interface
+
+### Prompt Management
+- **JSON Structure**: AI bias template converted to structured JSON format
+- **Parser Script**: Created parseTemplate.js to extract and organize template sections
+- **Configuration Properties**: Added properties to enable future toggling and customization
+- **Documentation**: Created dashboardItems-README.md with structure explanation and usage guidance
 
 ### User Interface
 - **Bias Meter**: Visual representation of bias with gradient and arrow indicator
@@ -45,6 +52,8 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 ## What's Left to Build
 
 ### Short-term Tasks
+- **JSON Integration**: Update background.js to use the new JSON structure instead of hardcoded template
+- **Prompt Customization UI**: Create interface for users to edit prompt sections and toggle dashboard items
 - **Enhanced Text Extraction**: Improve article content extraction for various website structures
 - **Settings Implementation**: Add user-configurable options
 - **Export Functionality**: Allow users to export analysis results or history
@@ -91,11 +100,18 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - **Side Panel Migration**: Moved from popup to side panel for better user experience
 - **Progressive Disclosure**: Implemented collapsible sections to manage information density
 
+### Prompt Structure Evolution
+- **Initial Implementation**: Hardcoded prompt template in background.js
+- **Client-Side Storage**: Added storage and retrieval of prompt in Chrome storage
+- **Sectioned Editing**: Implemented separate editable fields for each prompt section
+- **JSON Structure**: Converted to structured JSON format for improved modularity and customization
+
 ### Technical Evolution
 - **Manifest V3**: Updated to latest Chrome extension manifest version
 - **API Integration**: Moved from earlier GPT models to GPT-4o
 - **Storage Strategy**: Implemented local storage with history management
 - **Error Handling**: Improved robustness with better error handling
+- **Prompt Management**: Shifted from monolithic text to structured JSON for flexibility
 
 ### Feature Prioritization
 - **Core Analysis**: Initially focused on basic bias detection
@@ -118,7 +134,8 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - Improved backend integration with GPT-4o
 
 ### Future Versions
-- **Version 2.1**: Enhanced text extraction and settings implementation
+- **Version 2.1**: JSON prompt integration and customization UI
+- **Version 2.2**: Enhanced text extraction and settings implementation
 - **Version 2.5**: Deployed backend and export functionality
 - **Version 3.0**: User accounts and advanced analytics
 

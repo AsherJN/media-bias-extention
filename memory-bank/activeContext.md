@@ -12,7 +12,16 @@ The Media Bias Analyzer is currently at version 2.0, with a focus on the followi
 
 4. **UI Refinement**: The interface has been designed with a clean, modern aesthetic using a blue color scheme and expandable content sections.
 
+5. **Prompt Customization Groundwork**: The AI bias template has been converted to a structured JSON format to enable future user customization of prompts and dashboard items.
+
 ## Recent Changes
+
+### Prompt Structure Improvements
+- Converted the AI bias template from a monolithic text file to a structured JSON format
+- Created a parser script (parseTemplate.js) to extract and organize template sections
+- Added configuration properties to enable future toggling and customization of dashboard items
+- Created comprehensive documentation for the JSON structure and its intended usage
+- Laid groundwork for implementing user prompt customization and dashboard configuration
 
 ### Documentation Updates
 - Completely overhauled README.md to reflect current version 2.0 status and features
@@ -50,12 +59,14 @@ The Media Bias Analyzer is currently at version 2.0, with a focus on the followi
 ## Next Steps
 
 ### Short-term Priorities
-1. **Improve Text Extraction**: Enhance the article content extraction logic to better handle various website structures
-2. **Expand Settings Options**: Implement user-configurable settings such as:
+1. **Integrate JSON Prompt Structure**: Update background.js to use the new JSON structure instead of hardcoded template
+2. **Implement Prompt Customization UI**: Create interface for users to edit prompt sections and toggle dashboard items
+3. **Improve Text Extraction**: Enhance the article content extraction logic to better handle various website structures
+4. **Expand Settings Options**: Implement user-configurable settings such as:
    - Default analysis depth
    - UI theme preferences
    - History retention period
-3. **Add Export Functionality**: Allow users to export analysis results or history
+5. **Add Export Functionality**: Allow users to export analysis results or history
 
 ### Medium-term Goals
 1. **Deploy Backend Server**: Move from local-only backend to a hosted solution
@@ -73,11 +84,13 @@ The Media Bias Analyzer is currently at version 2.0, with a focus on the followi
 - **Local vs. Hosted Backend**: Currently using a local backend for development, but considering options for deployment
 - **Data Storage Strategy**: Evaluating the balance between local storage and potential cloud storage for user data
 - **API Usage Optimization**: Looking for ways to minimize token usage while maintaining analysis quality
+- **Prompt Structure**: Moved from monolithic text template to structured JSON format to enable modularity and customization
 
 ### UX Decisions
 - **Information Density**: Balancing comprehensive analysis with an uncluttered interface
 - **Visual Indicators**: Considering how to represent bias and other metrics in an intuitive way
 - **Accessibility**: Ensuring the extension is usable by people with various abilities
+- **Prompt Customization**: Planning UI controls for toggling dashboard items and editing prompt sections
 
 ### Product Decisions
 - **Monetization Strategy**: Evaluating options for sustainable development (API costs vs. user pricing)
@@ -107,6 +120,7 @@ The Media Bias Analyzer is currently at version 2.0, with a focus on the followi
 - Chrome's side panel API provides a better user experience for content-heavy extensions
 - Text extraction from news sites requires balancing simplicity with effectiveness
 - Managing API costs is a significant consideration for AI-powered tools
+- Structured JSON format provides more flexibility and maintainability than hardcoded text templates
 
 ### User Experience Insights
 - Users prefer clear, visual representations of bias rather than just numerical scores

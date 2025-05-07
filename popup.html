@@ -137,22 +137,84 @@
       </div>
       
       <div class="prompt-section">
+        <h3>Dashboard Items</h3>
+        <p>Configure which items appear in the analysis dashboard and their order.</p>
+        
+        <div id="dashboard-items-container">
+          <!-- Dashboard items will be dynamically populated here -->
+          <div class="loading-indicator">Loading dashboard items...</div>
+        </div>
+      </div>
+      
+      <div class="prompt-section">
         <h3>Overall Bias Score</h3>
+        <div class="dashboard-item-controls">
+          <div class="toggle-container">
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-bias-score" checked>
+              <span class="toggle-slider"></span>
+            </label>
+            <span>Show in Dashboard</span>
+          </div>
+          <div class="order-controls">
+            <button class="order-up" data-item-id="bias_score">↑</button>
+            <button class="order-down" data-item-id="bias_score">↓</button>
+          </div>
+        </div>
         <textarea id="prompt-bias-score" class="prompt-textarea" placeholder="Define how to assess bias score..."></textarea>
       </div>
       
       <div class="prompt-section">
         <h3>Language and Tone</h3>
+        <div class="dashboard-item-controls">
+          <div class="toggle-container">
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-language-tone" checked>
+              <span class="toggle-slider"></span>
+            </label>
+            <span>Show in Dashboard</span>
+          </div>
+          <div class="order-controls">
+            <button class="order-up" data-item-id="dashboard_item_5">↑</button>
+            <button class="order-down" data-item-id="dashboard_item_5">↓</button>
+          </div>
+        </div>
         <textarea id="prompt-language-tone" class="prompt-textarea" placeholder="Define how to assess language and tone..."></textarea>
       </div>
       
       <div class="prompt-section">
         <h3>Framing and Perspective</h3>
+        <div class="dashboard-item-controls">
+          <div class="toggle-container">
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-framing" checked>
+              <span class="toggle-slider"></span>
+            </label>
+            <span>Show in Dashboard</span>
+          </div>
+          <div class="order-controls">
+            <button class="order-up" data-item-id="dashboard_item_6">↑</button>
+            <button class="order-down" data-item-id="dashboard_item_6">↓</button>
+          </div>
+        </div>
         <textarea id="prompt-framing" class="prompt-textarea" placeholder="Define how to assess framing and perspective..."></textarea>
       </div>
       
       <div class="prompt-section">
         <h3>Alternative Perspectives</h3>
+        <div class="dashboard-item-controls">
+          <div class="toggle-container">
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-alternatives" checked>
+              <span class="toggle-slider"></span>
+            </label>
+            <span>Show in Dashboard</span>
+          </div>
+          <div class="order-controls">
+            <button class="order-up" data-item-id="dashboard_item_7">↑</button>
+            <button class="order-down" data-item-id="dashboard_item_7">↓</button>
+          </div>
+        </div>
         <textarea id="prompt-alternatives" class="prompt-textarea" placeholder="Define how to assess alternative perspectives..."></textarea>
       </div>
       

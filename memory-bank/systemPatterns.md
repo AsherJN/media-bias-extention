@@ -5,24 +5,31 @@
 The Media Bias Analyzer follows a client-server architecture with the following components:
 
 ```
-┌─────────────────────────────────────┐      ┌─────────────────────────┐      ┌─────────────────┐
-│ Chrome Extension (Client)           │      │ Flask Backend (Server)  │      │ OpenAI API      │
-│                                     │      │                         │      │                 │
-│ ┌─────────────┐    ┌─────────────┐  │      │ ┌─────────────────────┐ │      │ ┌─────────────┐ │
-│ │ Content     │    │ Extension   │  │      │ │ Flask Application   │ │      │ │ GPT-4o      │ │
-│ │ Script      │◄───┤ UI (Popup)  │  │      │ │                     │ │      │ │ Model       │ │
-│ │             │    │             │  │      │ │ ┌─────────────────┐ │ │      │ │             │ │
-│ └─────────────┘    └─────────────┘  │      │ │ │ Analysis Logic  │ │ │      │ └─────────────┘ │
-│        │                 ▲           │      │ │ └─────────────────┘ │ │      │                 │
-│        │                 │           │      │ └─────────────────────┘ │      └─────────────────┘
-│        ▼                 │           │      │             ▲            │               ▲
-│ ┌─────────────┐    ┌─────────────┐  │      │             │            │               │
-│ │ Background  │    │ Chrome      │  │      │             │            │               │
-│ │ Script      │    │ Storage API │  │      │             │            │               │
-│ └─────────────┘    └─────────────┘  │      │             │            │               │
-└─────────────────────────────────────┘      └─────────────┼────────────┘               │
-                                                           │                            │
-                                                           └────────────────────────────┘
+┌─────────────────────────────────────────────────┐      ┌─────────────────────────┐      ┌─────────────────┐
+│ Chrome Extension (Client)                       │      │ Flask Backend (Server)  │      │ OpenAI API      │
+│                                                 │      │                         │      │                 │
+│ ┌─────────────┐    ┌─────────────────────────┐  │      │ ┌─────────────────────┐ │      │ ┌─────────────┐ │
+│ │ Content     │    │ Extension UI (SidePanel)│  │      │ │ Flask Application   │ │      │ │ GPT-4o      │ │
+│ │ Script      │◄───┤                         │  │      │ │                     │ │      │ │ Model       │ │
+│ │             │    │                         │  │      │ │ ┌─────────────────┐ │ │      │ │             │ │
+│ └─────────────┘    └─────────────────────────┘  │      │ │ │ Analysis Logic  │ │ │      │ └─────────────┘ │
+│        │                 ▲                       │      │ │ └─────────────────┘ │ │      │                 │
+│        │                 │                       │      │ └─────────────────────┘ │      └─────────────────┘
+│        ▼                 │                       │      │             ▲            │               ▲
+│ ┌─────────────┐    ┌─────────────┐               │      │             │            │               │
+│ │ Background  │    │ Chrome      │               │      │             │            │               │
+│ │ Script      │    │ Storage API │               │      │             │            │               │
+│ └─────────────┘    └─────────────┘               │      │             │            │               │
+│        │                 ▲                       │      │             │            │               │
+│        │                 │                       │      │             │            │               │
+│        ▼                 │                       │      │             │            │               │
+│ ┌──────────────────────────────────────┐         │      │             │            │               │
+│ │ dashboardItems.json                  │         │      │             │            │               │
+│ │ (Prompt & Dashboard Configuration)   │         │      │             │            │               │
+│ └──────────────────────────────────────┘         │      │             │            │               │
+└─────────────────────────────────────────────────┘      └─────────────┼────────────┘               │
+                                                                       │                            │
+                                                                       └────────────────────────────┘
 ```
 
 ### Key Components
@@ -32,6 +39,7 @@ The Media Bias Analyzer follows a client-server architecture with the following 
    - **Background Script**: Manages side panel behavior
    - **Extension UI**: Displays analysis results in a side panel
    - **Chrome Storage API**: Persists analysis history and settings
+   - **dashboardItems.json**: Structured configuration for prompt and dashboard items
 
 2. **Flask Backend (Server)**
    - **Flask Application**: Handles HTTP requests from the extension
@@ -50,7 +58,9 @@ The Media Bias Analyzer follows a client-server architecture with the following 
    - Data is sent to background script
 
 2. **Analysis Request**
-   - Background script forwards article text and prompt template from the extension to the Flask backend
+   - Background script reads the prompt configuration from dashboardItems.json
+   - Background script constructs the full prompt from the JSON structure
+   - Background script forwards article text and constructed prompt to the Flask backend
    - Flask backend replaces `{article_text}` in the prompt with the actual article text
    - Flask backend sends the completed prompt to the OpenAI API
 
@@ -71,13 +81,19 @@ The Media Bias Analyzer follows a client-server architecture with the following 
 - Content script observes DOM changes to extract article content
 
 ### Model-View-Controller (MVC)
-- **Model**: Article data and analysis results
+- **Model**: Article data, analysis results, and prompt configuration
 - **View**: HTML/CSS components in the side panel
 - **Controller**: JavaScript functions that handle user interactions
+
+### Configuration Object Pattern
+- The dashboardItems.json file serves as a centralized configuration object
+- Separates configuration from code for improved maintainability
+- Enables runtime customization without code changes
 
 ### Facade Pattern
 - The backend API provides a simplified interface to the complex OpenAI API
 - The content script abstracts away the complexity of DOM manipulation
+- The prompt construction process abstracts the complexity of the prompt structure
 
 ### Strategy Pattern
 - Different analysis components (bias score, language tone, etc.) are processed independently
@@ -89,6 +105,11 @@ The Media Bias Analyzer follows a client-server architecture with the following 
 - Chrome's side panel API is used instead of a popup for more screen real estate
 - This allows for a more comprehensive display of analysis results
 
+### Structured JSON Prompt Configuration
+- Prompt template converted from monolithic text to structured JSON
+- Enables modularity, customization, and future UI controls
+- Separates different components of the prompt for individual editing
+
 ### Local Backend Server
 - A local Flask server is used instead of direct API calls from the extension
 - This keeps API keys secure and allows for more complex processing
@@ -96,6 +117,7 @@ The Media Bias Analyzer follows a client-server architecture with the following 
 ### JSON Data Format
 - All communication between components uses JSON for consistency
 - Structured data format makes it easy to parse and display results
+- Both prompt configuration and analysis results use JSON for uniformity
 
 ### Expandable UI Sections
 - Analysis results are organized into collapsible sections
@@ -110,6 +132,11 @@ The Media Bias Analyzer follows a client-server architecture with the following 
 ### Article Text Extraction
 ```
 User clicks "Analyze" → Content script extracts text → Text sent to backend → Analysis results displayed
+```
+
+### Prompt Construction
+```
+Background script reads dashboardItems.json → Constructs full prompt → Sends to backend with article text
 ```
 
 ### History Management
@@ -135,6 +162,10 @@ User opens settings → Changes preferences → Settings saved to storage → Pr
 3. **API Limitations**
    - Handling of token limits and rate limiting
    - Graceful degradation when API is unavailable
+
+4. **Configuration Issues**
+   - Validation of JSON structure before use
+   - Fallback to default configuration if JSON is invalid
 
 ## Security Considerations
 

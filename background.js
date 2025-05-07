@@ -1,6 +1,109 @@
 console.log("Background script running.");
 
-// Default bias analysis prompt
+// Function to load dashboardItems.json
+async function loadDashboardItems() {
+  try {
+    const response = await fetch('dashboardItems.json');
+    return await response.json();
+  } catch (error) {
+    console.error('Error loading dashboardItems.json:', error);
+    return null;
+  }
+}
+
+// Function to convert JSON structure to prompt string
+function convertJsonToPrompt(config) {
+  console.log("convertJsonToPrompt called with config:", JSON.stringify(config));
+  
+  let prompt = '';
+  
+  // Add role section
+  prompt += `${config.promptSections.role.content}\n\n`;
+  prompt += '────────────────────────────────────────────────────────────────────────\n\n';
+  
+  // Add context section
+  prompt += `${config.promptSections.context.content}\n\n`;
+  prompt += '────────────────────────────────────────────────────────────────────────\n\n';
+  
+  // Add dashboard items (only visible ones)
+  const visibleItems = config.dashboardItems
+    .filter(item => item.isVisible)
+    .sort((a, b) => a.order - b.order);
+  
+  console.log("Filtered visible items:", JSON.stringify(visibleItems));
+  console.log("Number of visible items:", visibleItems.length);
+  
+  let itemCounter = 1;
+  for (const item of visibleItems) {
+    console.log(`Processing item ${itemCounter}: ${item.id} (${item.title})`);
+    
+    prompt += `**Dashboard Item ${itemCounter}**\n`;
+    prompt += `Title: ${item.title}\n`;
+    prompt += `JSON ID: "${item.id}"\n`;
+    
+    if (item.wordLimit) {
+      prompt += `Word Count: ≤ ${item.wordLimit} words\n`;
+    }
+    
+    prompt += `Definition: ${item.description}\n`;
+    
+    if (item.assessmentCriteria && item.assessmentCriteria.length > 0) {
+      prompt += 'How to Assess:\n';
+      for (const criterion of item.assessmentCriteria) {
+        prompt += `• ${criterion}\n`;
+      }
+      prompt += '\n';
+    }
+    
+    if (item.keyQuestions && item.keyQuestions.length > 0) {
+      prompt += 'Key Questions:\n';
+      for (const question of item.keyQuestions) {
+        prompt += `• ${question}\n`;
+      }
+    }
+    
+    prompt += '\n────────────────────────────────────────────────────────────────────────\n\n';
+    itemCounter++;
+  }
+  
+  // Add article placeholder
+  prompt += 'Listed below, delimited by triple dashes, is the **full text** of the news article you will analyze. **Do not modify it.**\n';
+  prompt += '---\n{article_text}\n---\n\n';
+  
+  // Add task instructions
+  prompt += `Task (step‑by‑step):\n${config.taskInstructions.content}\n\n`;
+  
+  // Add output schema
+  prompt += `Required JSON Schema\n${config.outputSchema.content}`;
+  
+  console.log("Generated prompt with length:", prompt.length);
+  
+  return prompt;
+}
+
+// Generate output schema based on visible items
+function generateOutputSchema(visibleItems) {
+  console.log("generateOutputSchema called with visible items:", JSON.stringify(visibleItems));
+  
+  let schema = '```json\n{\n';
+  schema += '  "bias_score": [integer –5 to +5],\n';
+  schema += '  "analysis_summary": "[insert output here]",\n';
+  
+  for (const item of visibleItems) {
+    if (item.id !== 'bias_score' && item.id !== 'analysis_summary') {
+      schema += `  "${item.id}": "[insert output here]",\n`;
+    }
+  }
+  
+  // Remove trailing comma and close the object
+  schema = schema.slice(0, -2) + '\n}\n```';
+  
+  console.log("Generated schema:", schema);
+  
+  return schema;
+}
+
+// Default bias analysis prompt as fallback
 const DEFAULT_BIAS_ANALYSIS_PROMPT = `
 Role: You are an impartial, hyper‑attentive **Media Bias Analyst** embedded in the browser extension.  
 • Mission Protect and empower readers by uncovering ideological lean, hidden framing, and informational gaps in any news article.  
@@ -200,13 +303,26 @@ json
 
 // Initialize the prompt in Chrome storage when the extension is installed
 chrome.runtime.onInstalled.addListener(async () => {
-  // Check if prompt already exists in storage
-  const data = await chrome.storage.local.get(['biasAnalysisPrompt']);
+  // Load dashboard items from JSON
+  const dashboardItems = await loadDashboardItems();
   
-  // If not, initialize with default prompt
+  // Check if prompt already exists in storage
+  const data = await chrome.storage.local.get(['biasAnalysisPrompt', 'dashboardItemsConfig']);
+  
+  // If not, initialize with JSON-based prompt or fallback to default
   if (!data.biasAnalysisPrompt) {
-    chrome.storage.local.set({ biasAnalysisPrompt: DEFAULT_BIAS_ANALYSIS_PROMPT });
-    console.log("Default bias analysis prompt initialized in storage");
+    const prompt = dashboardItems ? convertJsonToPrompt(dashboardItems) : DEFAULT_BIAS_ANALYSIS_PROMPT;
+    chrome.storage.local.set({ 
+      biasAnalysisPrompt: prompt,
+      dashboardItemsConfig: dashboardItems // Store the JSON structure for UI customization
+    });
+    console.log("Bias analysis prompt initialized from JSON configuration");
+  }
+  
+  // If we have a prompt but no JSON config, store the JSON config
+  if (data.biasAnalysisPrompt && !data.dashboardItemsConfig && dashboardItems) {
+    chrome.storage.local.set({ dashboardItemsConfig: dashboardItems });
+    console.log("Dashboard items configuration stored");
   }
 });
 
@@ -221,9 +337,36 @@ chrome.action.onClicked.addListener((tab) => {
 
 // Listen for messages from the popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  console.log("Message received in background script:", request.action);
+  
   // Handle request for default prompt
   if (request.action === "getDefaultPrompt") {
+    console.log("Sending default prompt");
     sendResponse({ defaultPrompt: DEFAULT_BIAS_ANALYSIS_PROMPT });
+    return true; // Keep the message channel open for async response
+  }
+  
+  // Handle request for dashboard items configuration
+  if (request.action === "getDashboardItems") {
+    console.log("Getting dashboard items");
+    loadDashboardItems().then(items => {
+      console.log("Sending dashboard items:", items);
+      sendResponse({ dashboardItems: items });
+    });
+    return true; // Keep the message channel open for async response
+  }
+  
+  // Handle request to generate prompt from JSON
+  if (request.action === "generatePromptFromJson" && request.config) {
+    console.log("Generating prompt from JSON config");
+    try {
+      const prompt = convertJsonToPrompt(request.config);
+      console.log("Prompt generated successfully, sending response");
+      sendResponse({ prompt: prompt });
+    } catch (error) {
+      console.error("Error generating prompt:", error);
+      sendResponse({ error: error.message });
+    }
     return true; // Keep the message channel open for async response
   }
 });

@@ -240,6 +240,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
   
+  // Function to get dashboard items from storage or file
+  async function getDashboardItems() {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(['dashboardItemsConfig'], (data) => {
+        if (data.dashboardItemsConfig) {
+          resolve(data.dashboardItemsConfig);
+        } else {
+          // If not found in storage, load from file
+          fetch('dashboardItems.json')
+            .then(response => response.json())
+            .then(json => {
+              // Store for future use
+              chrome.storage.local.set({ dashboardItemsConfig: json });
+              resolve(json);
+            })
+            .catch(error => {
+              console.error('Error loading dashboardItems.json:', error);
+              resolve(null);
+            });
+        }
+      });
+    });
+  }
+
   // Function to get the stored prompt from Chrome storage
   async function getStoredPrompt() {
     return new Promise((resolve) => {
@@ -247,26 +271,57 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (data.biasAnalysisPrompt) {
           resolve(data.biasAnalysisPrompt);
         } else {
-          // If prompt not found in storage, fetch from backend as fallback
-          fetchPromptFromBackend()
-            .then(prompt => {
-              // Store the fetched prompt for future use
-              chrome.storage.local.set({ biasAnalysisPrompt: prompt });
-              resolve(prompt);
-            })
-            .catch(error => {
-              console.error("Error fetching prompt from backend:", error);
-              // Use a minimal fallback prompt if all else fails
-              const fallbackPrompt = `
-Role: You are a highly vigilant internet watchdog who's main priority is to assist users in navigating media bias that may be present in the news/media that people consume.
-
-[This is a preview of the AI prompt used for bias analysis. The full prompt contains detailed instructions for analyzing article bias across multiple dimensions.]
-`;
-              resolve(fallbackPrompt);
+          // If prompt not found in storage, generate from dashboard items
+          getDashboardItems()
+            .then(dashboardItems => {
+              if (dashboardItems) {
+                // Generate prompt from dashboard items
+                chrome.runtime.sendMessage(
+                  { action: "generatePromptFromJson", config: dashboardItems },
+                  (response) => {
+                    if (response && response.prompt) {
+                      // Store the generated prompt for future use
+                      chrome.storage.local.set({ biasAnalysisPrompt: response.prompt });
+                      resolve(response.prompt);
+                    } else {
+                      // Fallback to backend if generation fails
+                      fetchPromptFromBackend()
+                        .then(prompt => {
+                          chrome.storage.local.set({ biasAnalysisPrompt: prompt });
+                          resolve(prompt);
+                        })
+                        .catch(error => {
+                          console.error("Error fetching prompt from backend:", error);
+                          resolve(getFallbackPrompt());
+                        });
+                    }
+                  }
+                );
+              } else {
+                // Fallback to backend if no dashboard items
+                fetchPromptFromBackend()
+                  .then(prompt => {
+                    chrome.storage.local.set({ biasAnalysisPrompt: prompt });
+                    resolve(prompt);
+                  })
+                  .catch(error => {
+                    console.error("Error fetching prompt from backend:", error);
+                    resolve(getFallbackPrompt());
+                  });
+              }
             });
         }
       });
     });
+  }
+  
+  // Function to get a minimal fallback prompt
+  function getFallbackPrompt() {
+    return `
+Role: You are a highly vigilant internet watchdog who's main priority is to assist users in navigating media bias that may be present in the news/media that people consume.
+
+[This is a preview of the AI prompt used for bias analysis. The full prompt contains detailed instructions for analyzing article bias across multiple dimensions.]
+`;
   }
 
   // Function to fetch the prompt from the backend (used as fallback)
@@ -476,6 +531,528 @@ ${sections.outputExample}
     });
   }
   
+  // Function to load and display dashboard items
+  async function loadDashboardItems() {
+    try {
+      console.log("loadDashboardItems called");
+      
+      const dashboardItems = await getDashboardItems();
+      if (!dashboardItems) {
+        console.error("Failed to load dashboard items");
+        return;
+      }
+      
+      console.log("Dashboard items loaded:", dashboardItems);
+      
+      // Get the container element
+      const container = document.getElementById("dashboard-items-container");
+      
+      // Clear loading indicator
+      container.innerHTML = "";
+      
+      // Create a visual representation of the dashboard items
+      const itemsListElement = document.createElement("div");
+      itemsListElement.className = "dashboard-items-list";
+      
+      // Sort items by order
+      const sortedItems = [...dashboardItems.dashboardItems].sort((a, b) => a.order - b.order);
+      
+      console.log("Sorted items:", sortedItems);
+      
+      // Add a header
+      const headerElement = document.createElement("div");
+      headerElement.className = "dashboard-items-header";
+      headerElement.innerHTML = "<h4>Dashboard Items</h4><p>Toggle visibility and change order of items in the analysis dashboard.</p>";
+      container.appendChild(headerElement);
+      
+      // Add each item to the list
+      sortedItems.forEach(item => {
+        const itemElement = document.createElement("div");
+        itemElement.className = "dashboard-item-entry";
+        itemElement.dataset.itemId = item.id;
+        
+        // Create item content
+        itemElement.innerHTML = `
+          <div class="item-info">
+            <span class="item-title">${item.title}</span>
+            <span class="item-id">(${item.id})</span>
+          </div>
+          <div class="item-controls">
+            <div class="toggle-container">
+              <label class="toggle-switch">
+                <input type="checkbox" class="item-toggle" data-item-id="${item.id}" ${item.isVisible ? 'checked' : ''}>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="order-controls">
+              <button class="order-up" data-item-id="${item.id}">↑</button>
+              <button class="order-down" data-item-id="${item.id}">↓</button>
+            </div>
+          </div>
+        `;
+        
+        itemsListElement.appendChild(itemElement);
+      });
+      
+      container.appendChild(itemsListElement);
+      
+      // Set up toggle event listeners for existing dashboard items
+      setupDashboardItemToggles(dashboardItems);
+      
+      // Set up order control event listeners
+      setupOrderControls(dashboardItems);
+      
+      // Add CSS for the new elements
+      const style = document.createElement('style');
+      style.textContent = `
+        .dashboard-items-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-top: 15px;
+        }
+        .dashboard-items-header {
+          margin-bottom: 10px;
+        }
+        .dashboard-items-header h4 {
+          margin: 0 0 5px 0;
+        }
+        .dashboard-items-header p {
+          margin: 0;
+          font-size: 0.9em;
+          color: #666;
+        }
+        .dashboard-item-entry {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 8px 12px;
+          background-color: #f5f5f5;
+          border-radius: 4px;
+          border-left: 3px solid #3498db;
+        }
+        .item-info {
+          display: flex;
+          flex-direction: column;
+        }
+        .item-title {
+          font-weight: bold;
+        }
+        .item-id {
+          font-size: 0.8em;
+          color: #666;
+        }
+        .item-controls {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .order-controls {
+          display: flex;
+          gap: 5px;
+        }
+        .order-up, .order-down {
+          background-color: #f0f0f0;
+          border: 1px solid #ddd;
+          border-radius: 3px;
+          cursor: pointer;
+          width: 24px;
+          height: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .order-up:hover, .order-down:hover {
+          background-color: #e0e0e0;
+        }
+      `;
+      document.head.appendChild(style);
+      
+    } catch (error) {
+      console.error("Error loading dashboard items:", error);
+    }
+  }
+  
+  // Function to set up toggle event listeners for dashboard items
+  function setupDashboardItemToggles(dashboardItems) {
+    console.log("Setting up dashboard item toggles with config:", dashboardItems);
+    
+    // Set up toggles for all items using the dynamically created elements
+    const toggles = document.querySelectorAll('.item-toggle');
+    console.log("Found toggle elements:", toggles.length);
+    
+    toggles.forEach(toggle => {
+      const itemId = toggle.getAttribute('data-item-id');
+      console.log(`Setting up toggle for item: ${itemId}`);
+      
+      // Remove any existing event listeners
+      toggle.removeEventListener('change', toggleChangeHandler);
+      
+      // Add new event listener
+      toggle.addEventListener('change', toggleChangeHandler);
+    });
+    
+    // Also set up the original toggles for backward compatibility
+    setupOriginalToggles(dashboardItems);
+  }
+  
+  // Event handler for toggle changes
+  function toggleChangeHandler(event) {
+    const itemId = event.target.getAttribute('data-item-id');
+    const isVisible = event.target.checked;
+    console.log(`Toggle changed for item ${itemId} to ${isVisible}`);
+    updateDashboardItemVisibility(itemId, isVisible);
+  }
+  
+  // Set up the original toggles for backward compatibility
+  function setupOriginalToggles(dashboardItems) {
+    // Set up toggle for bias score
+    const biasScoreToggle = document.getElementById("toggle-bias-score");
+    if (biasScoreToggle) {
+      const biasScoreItem = dashboardItems.dashboardItems.find(item => item.id === "bias_score");
+      if (biasScoreItem) {
+        console.log("Found bias_score item:", biasScoreItem);
+        biasScoreToggle.checked = biasScoreItem.isVisible;
+        biasScoreToggle.addEventListener("change", () => {
+          console.log("Bias score toggle changed to:", biasScoreToggle.checked);
+          updateDashboardItemVisibility("bias_score", biasScoreToggle.checked);
+        });
+      } else {
+        console.error("Could not find bias_score item in dashboardItems");
+      }
+    } else {
+      console.error("Could not find toggle-bias-score element");
+    }
+    
+    // Set up toggle for language tone
+    const languageToneToggle = document.getElementById("toggle-language-tone");
+    if (languageToneToggle) {
+      const languageToneItem = dashboardItems.dashboardItems.find(item => item.id === "dashboard_item_5");
+      if (languageToneItem) {
+        console.log("Found dashboard_item_5 item:", languageToneItem);
+        languageToneToggle.checked = languageToneItem.isVisible;
+        languageToneToggle.addEventListener("change", () => {
+          console.log("Language tone toggle changed to:", languageToneToggle.checked);
+          updateDashboardItemVisibility("dashboard_item_5", languageToneToggle.checked);
+        });
+      } else {
+        console.error("Could not find dashboard_item_5 item in dashboardItems");
+      }
+    } else {
+      console.error("Could not find toggle-language-tone element");
+    }
+    
+    // Set up toggle for framing
+    const framingToggle = document.getElementById("toggle-framing");
+    if (framingToggle) {
+      const framingItem = dashboardItems.dashboardItems.find(item => item.id === "dashboard_item_6");
+      if (framingItem) {
+        console.log("Found dashboard_item_6 item:", framingItem);
+        framingToggle.checked = framingItem.isVisible;
+        framingToggle.addEventListener("change", () => {
+          console.log("Framing toggle changed to:", framingToggle.checked);
+          updateDashboardItemVisibility("dashboard_item_6", framingToggle.checked);
+        });
+      } else {
+        console.error("Could not find dashboard_item_6 item in dashboardItems");
+      }
+    } else {
+      console.error("Could not find toggle-framing element");
+    }
+    
+    // Set up toggle for alternatives
+    const alternativesToggle = document.getElementById("toggle-alternatives");
+    if (alternativesToggle) {
+      const alternativesItem = dashboardItems.dashboardItems.find(item => item.id === "dashboard_item_7");
+      if (alternativesItem) {
+        console.log("Found dashboard_item_7 item:", alternativesItem);
+        alternativesToggle.checked = alternativesItem.isVisible;
+        alternativesToggle.addEventListener("change", () => {
+          console.log("Alternatives toggle changed to:", alternativesToggle.checked);
+          updateDashboardItemVisibility("dashboard_item_7", alternativesToggle.checked);
+        });
+      } else {
+        console.error("Could not find dashboard_item_7 item in dashboardItems");
+      }
+    } else {
+      console.error("Could not find toggle-alternatives element");
+    }
+  }
+  
+  // Function to set up order control event listeners
+  function setupOrderControls(dashboardItems) {
+    console.log("Setting up order controls");
+    
+    // Get all order control buttons
+    const orderUpButtons = document.querySelectorAll(".order-up");
+    const orderDownButtons = document.querySelectorAll(".order-down");
+    
+    console.log("Found up buttons:", orderUpButtons.length);
+    console.log("Found down buttons:", orderDownButtons.length);
+    
+    // Remove any existing event listeners
+    orderUpButtons.forEach(button => {
+      button.removeEventListener('click', upButtonClickHandler);
+    });
+    
+    orderDownButtons.forEach(button => {
+      button.removeEventListener('click', downButtonClickHandler);
+    });
+    
+    // Add event listeners to up buttons
+    orderUpButtons.forEach(button => {
+      const itemId = button.getAttribute("data-item-id");
+      console.log("Setting up click listener for up button with item ID:", itemId);
+      
+      button.addEventListener("click", upButtonClickHandler);
+    });
+    
+    // Add event listeners to down buttons
+    orderDownButtons.forEach(button => {
+      const itemId = button.getAttribute("data-item-id");
+      console.log("Setting up click listener for down button with item ID:", itemId);
+      
+      button.addEventListener("click", downButtonClickHandler);
+    });
+  }
+  
+  // Event handler for up button clicks
+  function upButtonClickHandler(event) {
+    const itemId = event.currentTarget.getAttribute("data-item-id");
+    console.log("Up button clicked for item:", itemId);
+    moveItemUp(itemId);
+  }
+  
+  // Event handler for down button clicks
+  function downButtonClickHandler(event) {
+    const itemId = event.currentTarget.getAttribute("data-item-id");
+    console.log("Down button clicked for item:", itemId);
+    moveItemDown(itemId);
+  }
+  
+  // Function to move an item up in order
+  async function moveItemUp(itemId) {
+    try {
+      console.log("moveItemUp called for item:", itemId);
+      
+      const dashboardItems = await getDashboardItems();
+      if (!dashboardItems) {
+        console.error("Failed to get dashboard items");
+        return;
+      }
+      
+      console.log("Current dashboard items:", JSON.stringify(dashboardItems.dashboardItems));
+      
+      const items = dashboardItems.dashboardItems;
+      const itemIndex = items.findIndex(item => item.id === itemId);
+      
+      console.log("Item index:", itemIndex);
+      
+      if (itemIndex > 0) {
+        // Swap order values with the item above
+        const currentOrder = items[itemIndex].order;
+        const prevOrder = items[itemIndex - 1].order;
+        
+        console.log(`Swapping order: ${items[itemIndex].id}(${currentOrder}) with ${items[itemIndex-1].id}(${prevOrder})`);
+        
+        items[itemIndex].order = prevOrder;
+        items[itemIndex - 1].order = currentOrder;
+        
+        console.log("Updated items:", JSON.stringify(items));
+        
+        // Save updated configuration
+        chrome.storage.local.set({ dashboardItemsConfig: dashboardItems }, () => {
+          console.log(`Moved item ${itemId} up - saved to storage`);
+          
+          // Regenerate prompt
+          regeneratePrompt(dashboardItems);
+          
+          // Refresh the UI to reflect the new order
+          loadDashboardItems();
+        });
+      } else {
+        console.log("Item is already at the top or not found");
+      }
+    } catch (error) {
+      console.error("Error moving item up:", error);
+    }
+  }
+  
+  // Function to move an item down in order
+  async function moveItemDown(itemId) {
+    try {
+      console.log("moveItemDown called for item:", itemId);
+      
+      const dashboardItems = await getDashboardItems();
+      if (!dashboardItems) {
+        console.error("Failed to get dashboard items");
+        return;
+      }
+      
+      console.log("Current dashboard items:", JSON.stringify(dashboardItems.dashboardItems));
+      
+      const items = dashboardItems.dashboardItems;
+      const itemIndex = items.findIndex(item => item.id === itemId);
+      
+      console.log("Item index:", itemIndex);
+      
+      if (itemIndex < items.length - 1) {
+        // Swap order values with the item below
+        const currentOrder = items[itemIndex].order;
+        const nextOrder = items[itemIndex + 1].order;
+        
+        console.log(`Swapping order: ${items[itemIndex].id}(${currentOrder}) with ${items[itemIndex+1].id}(${nextOrder})`);
+        
+        items[itemIndex].order = nextOrder;
+        items[itemIndex + 1].order = currentOrder;
+        
+        console.log("Updated items:", JSON.stringify(items));
+        
+        // Save updated configuration
+        chrome.storage.local.set({ dashboardItemsConfig: dashboardItems }, () => {
+          console.log(`Moved item ${itemId} down - saved to storage`);
+          
+          // Regenerate prompt
+          regeneratePrompt(dashboardItems);
+          
+          // Refresh the UI to reflect the new order
+          loadDashboardItems();
+        });
+      } else {
+        console.log("Item is already at the bottom or not found");
+      }
+    } catch (error) {
+      console.error("Error moving item down:", error);
+    }
+  }
+  
+  // Function to update dashboard item visibility
+  async function updateDashboardItemVisibility(itemId, isVisible) {
+    try {
+      console.log(`updateDashboardItemVisibility called for item: ${itemId}, isVisible: ${isVisible}`);
+      
+      const dashboardItems = await getDashboardItems();
+      if (!dashboardItems) {
+        console.error("Failed to get dashboard items");
+        return;
+      }
+      
+      console.log("Current dashboard items:", JSON.stringify(dashboardItems.dashboardItems));
+      
+      // Find the item and update its visibility
+      const items = dashboardItems.dashboardItems;
+      const itemIndex = items.findIndex(item => item.id === itemId);
+      
+      console.log("Item index:", itemIndex);
+      
+      if (itemIndex !== -1) {
+        console.log(`Updating visibility of ${items[itemIndex].id} from ${items[itemIndex].isVisible} to ${isVisible}`);
+        items[itemIndex].isVisible = isVisible;
+        
+        console.log("Updated items:", JSON.stringify(items));
+        
+        // Update all toggle elements with the same item ID
+        const toggles = document.querySelectorAll(`.item-toggle[data-item-id="${itemId}"]`);
+        toggles.forEach(toggle => {
+          toggle.checked = isVisible;
+        });
+        
+        // Also update the original toggles
+        if (itemId === "bias_score") {
+          const toggle = document.getElementById("toggle-bias-score");
+          if (toggle) toggle.checked = isVisible;
+        } else if (itemId === "dashboard_item_5") {
+          const toggle = document.getElementById("toggle-language-tone");
+          if (toggle) toggle.checked = isVisible;
+        } else if (itemId === "dashboard_item_6") {
+          const toggle = document.getElementById("toggle-framing");
+          if (toggle) toggle.checked = isVisible;
+        } else if (itemId === "dashboard_item_7") {
+          const toggle = document.getElementById("toggle-alternatives");
+          if (toggle) toggle.checked = isVisible;
+        }
+        
+        // Save updated configuration
+        chrome.storage.local.set({ dashboardItemsConfig: dashboardItems }, () => {
+          console.log(`Updated visibility of ${itemId} to ${isVisible} - saved to storage`);
+          
+          // Regenerate prompt
+          regeneratePrompt(dashboardItems);
+          
+          // Show visual feedback
+          showFeedback(`${items[itemIndex].title} is now ${isVisible ? 'visible' : 'hidden'}`);
+        });
+      } else {
+        console.error(`Item with ID ${itemId} not found in dashboardItems`);
+      }
+    } catch (error) {
+      console.error("Error updating dashboard item visibility:", error);
+    }
+  }
+  
+  // Function to show feedback to the user
+  function showFeedback(message) {
+    // Create or get the feedback element
+    let feedbackElement = document.getElementById("dashboard-feedback");
+    if (!feedbackElement) {
+      feedbackElement = document.createElement("div");
+      feedbackElement.id = "dashboard-feedback";
+      feedbackElement.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #3498db;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 1000;
+      `;
+      document.body.appendChild(feedbackElement);
+    }
+    
+    // Set the message and show the feedback
+    feedbackElement.textContent = message;
+    feedbackElement.style.opacity = "1";
+    
+    // Hide after 3 seconds
+    setTimeout(() => {
+      feedbackElement.style.opacity = "0";
+    }, 3000);
+  }
+  
+  // Function to regenerate prompt from dashboard items
+  async function regeneratePrompt(dashboardItems) {
+    try {
+      console.log("regeneratePrompt called with config:", dashboardItems);
+      
+      // Generate prompt from dashboard items
+      chrome.runtime.sendMessage(
+        { action: "generatePromptFromJson", config: dashboardItems },
+        (response) => {
+          if (response && response.prompt) {
+            console.log("Received regenerated prompt from background script");
+            
+            // Store the generated prompt
+            chrome.storage.local.set({ 
+              biasAnalysisPrompt: response.prompt,
+              lastPromptUpdate: Date.now()
+            }, () => {
+              console.log("Prompt regenerated and saved to storage");
+            });
+          } else {
+            console.error("Failed to regenerate prompt - invalid response:", response);
+          }
+        }
+      );
+    } catch (error) {
+      console.error("Error regenerating prompt:", error);
+    }
+  }
+  
   // Function to fetch and display the AI bias prompt
   async function fetchAndDisplayPrompt() {
     try {
@@ -487,6 +1064,9 @@ ${sections.outputExample}
       
       // Populate the editor fields
       populatePromptEditorFields(sections);
+      
+      // Load dashboard items
+      loadDashboardItems();
       
       // Set up event listeners for the save and reset buttons
       document.getElementById("prompt-save").addEventListener("click", async () => {
