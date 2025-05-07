@@ -50,6 +50,38 @@ async function loadPromptFramework() {
 }
 
 /**
+ * Flattens the nested sections structure into a single array
+ * @param {Object} framework - The prompt framework object
+ * @returns {Array} Array of all sections from all categories
+ */
+function flattenSections(framework) {
+  try {
+    // Check if we have the new nested structure or the old flat structure
+    if (Array.isArray(framework.sections)) {
+      // Old structure - already flat
+      return framework.sections;
+    }
+    
+    // New structure - need to flatten
+    const flatSections = [];
+    
+    // Iterate through each category
+    for (const categoryKey in framework.sections) {
+      const category = framework.sections[categoryKey];
+      if (category.items && Array.isArray(category.items)) {
+        // Add all items from this category to the flat array
+        flatSections.push(...category.items);
+      }
+    }
+    
+    return flatSections;
+  } catch (error) {
+    console.error('Error in flattenSections:', error);
+    throw error;
+  }
+}
+
+/**
  * Concatenates the prompt framework sections into a complete prompt string
  * @param {Object} framework - The prompt framework object
  * @param {string} articleText - The article text to insert into the prompt
@@ -57,8 +89,11 @@ async function loadPromptFramework() {
  */
 function concatenatePrompt(framework, articleText) {
   try {
+    // Get all sections from all categories and flatten them
+    const allSections = flattenSections(framework);
+    
     // Sort sections by order
-    const sortedSections = [...framework.sections].sort((a, b) => a.order - b.order);
+    const sortedSections = [...allSections].sort((a, b) => a.order - b.order);
     
     // Delimiter line
     const delimiter = '────────────────────────────────────────────────────────────────────────';
@@ -91,6 +126,53 @@ function concatenatePrompt(framework, articleText) {
 }
 
 /**
+ * Finds a section by ID in the nested structure
+ * @param {Object} framework - The prompt framework object
+ * @param {string} sectionId - The ID of the section to find
+ * @returns {Object} Object containing the section, its category, and its index
+ */
+function findSectionById(framework, sectionId) {
+  try {
+    // Check if we have the new nested structure or the old flat structure
+    if (Array.isArray(framework.sections)) {
+      // Old structure - find in flat array
+      const sectionIndex = framework.sections.findIndex(section => section.id === sectionId);
+      
+      if (sectionIndex === -1) {
+        return null;
+      }
+      
+      return {
+        section: framework.sections[sectionIndex],
+        categoryKey: null,
+        sectionIndex: sectionIndex
+      };
+    }
+    
+    // New structure - search in each category
+    for (const categoryKey in framework.sections) {
+      const category = framework.sections[categoryKey];
+      if (category.items && Array.isArray(category.items)) {
+        const sectionIndex = category.items.findIndex(section => section.id === sectionId);
+        
+        if (sectionIndex !== -1) {
+          return {
+            section: category.items[sectionIndex],
+            categoryKey: categoryKey,
+            sectionIndex: sectionIndex
+          };
+        }
+      }
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error in findSectionById:', error);
+    throw error;
+  }
+}
+
+/**
  * Updates a section in the prompt framework
  * @param {Object} framework - The prompt framework object
  * @param {string} sectionId - The ID of the section to update
@@ -102,14 +184,20 @@ function updatePromptSection(framework, sectionId, newContent) {
     const updatedFramework = JSON.parse(JSON.stringify(framework)); // Deep copy
     
     // Find the section to update
-    const sectionIndex = updatedFramework.sections.findIndex(section => section.id === sectionId);
+    const sectionInfo = findSectionById(updatedFramework, sectionId);
     
-    if (sectionIndex === -1) {
+    if (!sectionInfo) {
       throw new Error(`Section with ID "${sectionId}" not found`);
     }
     
     // Update the section content
-    updatedFramework.sections[sectionIndex].content = newContent;
+    if (sectionInfo.categoryKey === null) {
+      // Old structure
+      updatedFramework.sections[sectionInfo.sectionIndex].content = newContent;
+    } else {
+      // New structure
+      updatedFramework.sections[sectionInfo.categoryKey].items[sectionInfo.sectionIndex].content = newContent;
+    }
     
     // Update the last_updated timestamp
     updatedFramework.metadata.last_updated = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
@@ -153,12 +241,42 @@ async function savePromptFramework(framework) {
   });
 }
 
+/**
+ * Gets all sections from a specific category
+ * @param {Object} framework - The prompt framework object
+ * @param {string} categoryKey - The key of the category to get sections from
+ * @returns {Array} Array of sections from the specified category
+ */
+function getSectionsByCategory(framework, categoryKey) {
+  try {
+    // Check if we have the new nested structure or the old flat structure
+    if (Array.isArray(framework.sections)) {
+      // Old structure - can't get by category
+      console.warn('Cannot get sections by category: Framework uses old flat structure');
+      return [];
+    }
+    
+    // New structure - get sections from the specified category
+    if (framework.sections[categoryKey] && framework.sections[categoryKey].items) {
+      return framework.sections[categoryKey].items;
+    }
+    
+    return [];
+  } catch (error) {
+    console.error('Error in getSectionsByCategory:', error);
+    throw error;
+  }
+}
+
 // Export functions if in a module context
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     loadPromptFramework,
     concatenatePrompt,
     updatePromptSection,
-    savePromptFramework
+    savePromptFramework,
+    flattenSections,
+    findSectionById,
+    getSectionsByCategory
   };
 }

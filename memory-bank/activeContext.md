@@ -45,6 +45,15 @@ The Media Bias Analyzer is currently at version 2.0, with a focus on the followi
 - Updated the extension to use the new JSON-based prompt approach while maintaining backward compatibility
 - Removed all JavaScript functions related to section-based prompt editing
 - Improved asynchronous handling in the analyze button click handler
+- Restructured promptFramework.json to use a categorized approach with three main groups:
+  - Personality (role, context)
+  - Dashboard Items (all dashboard_item_* sections)
+  - Prompt Instructions (article_text, task, json_schema)
+- Enhanced promptUtils.js with new functions to support the categorized JSON structure:
+  - Added flattenSections() to convert nested structure to flat array
+  - Added findSectionById() to locate sections in the nested structure
+  - Added getSectionsByCategory() to get sections from a specific category
+  - Updated existing functions to maintain backward compatibility
 
 ### Backend Refinements
 - Updated the OpenAI integration to use GPT-4o

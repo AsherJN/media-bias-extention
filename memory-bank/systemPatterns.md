@@ -111,7 +111,9 @@ The Media Bias Analyzer follows a client-server architecture with the following 
 ### JSON-Based Prompt Framework
 - The AI prompt is stored as a structured JSON object instead of a string
 - Each section has metadata (ID, title, order) and content
+- Sections are organized into categories (Personality, Dashboard Items, Prompt Instructions)
 - This enables more flexible manipulation and customization of the prompt
+- The categorized structure improves maintainability and organization
 
 ### Expandable UI Sections
 - Analysis results are organized into collapsible sections
@@ -149,7 +151,7 @@ User opens settings → Changes preferences → Settings saved to storage → Pr
 
 ### Prompt Framework Usage
 ```
-Framework loaded from JSON → Sections sorted by order → Sections concatenated → Placeholders replaced → Used in analysis
+Framework loaded from JSON → Sections flattened → Sections sorted by order → Sections concatenated → Placeholders replaced → Used in analysis
 ```
 
 ## Error Handling

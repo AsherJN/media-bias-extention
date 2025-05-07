@@ -156,7 +156,11 @@ media-bias-analyzer/
 - Future improvement opportunity: More sophisticated extraction logic
 
 ### Prompt Framework Usage
-- **JSON Structure**: Organizes the prompt into distinct sections with metadata
+- **JSON Structure**: Organizes the prompt into categories, each containing sections with metadata
+- **Categories**:
+  - `personality`: Contains sections defining the AI's role and context
+  - `dashboard_items`: Contains sections defining the metrics displayed in the dashboard
+  - `prompt_instructions`: Contains sections defining the structure and requirements for analysis
 - **Section Properties**:
   - `id`: Unique identifier for the section
   - `title`: Display title for the section
@@ -167,8 +171,11 @@ media-bias-analyzer/
   - `json_id`: For dashboard items, the ID used in the JSON response
 - **Utility Functions**:
   - `loadPromptFramework()`: Loads the framework from JSON
+  - `flattenSections()`: Converts nested structure to flat array for backward compatibility
   - `concatenatePrompt()`: Combines sections into a complete prompt string
+  - `findSectionById()`: Locates sections in the nested structure
   - `updatePromptSection()`: Updates specific sections
+  - `getSectionsByCategory()`: Gets sections from a specific category
   - `savePromptFramework()`: Persists changes to storage
 
 ## Security Considerations

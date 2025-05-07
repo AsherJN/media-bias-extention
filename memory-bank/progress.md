@@ -126,11 +126,11 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - History tracking and management
 - Settings framework
 - Improved backend integration with GPT-4o
-- JSON-based prompt framework for improved maintainability
+- JSON-based prompt framework with categorized structure for improved maintainability
 
 ### Future Versions
 - **Version 2.1**: Enhanced text extraction and settings implementation
-- **Version 2.2**: Improved prompt customization UI using JSON framework
+- **Version 2.2**: Improved prompt customization UI leveraging the categorized JSON framework
 - **Version 2.5**: Deployed backend and export functionality
 - **Version 3.0**: User accounts and advanced analytics
 
