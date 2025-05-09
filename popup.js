@@ -379,7 +379,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         url: articleInfo.url,
         favicon: articleInfo.favicon,
         timestamp: Date.now(),
-        biasScore: analysis.bias_score
+        biasScore: analysis.dashboard_item_1
       };
       
       // Add to beginning of array (newest first)
@@ -474,46 +474,18 @@ document.getElementById("analyze-button").addEventListener("click", async () => 
             // Load the prompt framework
             let prompt;
             try {
-              // Try to get the prompt using the new framework approach
-              const framework = await loadPromptFramework();
-              prompt = concatenatePrompt(framework, response.articleText);
-              console.log("Using prompt framework for analysis");
-              
-              // Continue with analysis after prompt is ready
-              await continueWithAnalysis(prompt, response, tab, loadingDiv, progressContainer, resultsDiv);
-            } catch (error) {
-              console.error("Error using prompt framework:", error);
-              // Fall back to a simple prompt if framework approach fails
-              chrome.storage.local.get(['biasAnalysisPrompt'], async (data) => {
-                if (data.biasAnalysisPrompt) {
-                  prompt = data.biasAnalysisPrompt.replace("{article_text}", response.articleText);
-                } else {
-                  // Use a minimal fallback prompt if all else fails
-                  prompt = `
-Role: You are a highly vigilant internet watchdog who's main priority is to assist users in navigating media bias that may be present in the news/media that people consume.
-
-Analyze the following article text and provide a bias score from -5 (very liberal) to +5 (very conservative):
-
-${response.articleText}
-
-Provide your analysis in JSON format with the following fields:
-{
-  "bias_score": [integer -5 to +5],
-  "analysis_summary": "brief summary of bias analysis",
-  "dashboard_item_3": "article summary",
-  "dashboard_item_4": "historical context",
-  "dashboard_item_5": "language and tone analysis",
-  "dashboard_item_6": "framing and perspective analysis",
-  "dashboard_item_7": "alternative perspectives",
-  "dashboard_item_8": "publisher bias information"
-}
-`;
-                }
-                console.log("Using legacy prompt method for analysis");
-                
-                // Continue with analysis after prompt is ready
-                await continueWithAnalysis(prompt, response, tab, loadingDiv, progressContainer, resultsDiv);
-              });
+            // Get the prompt using the framework approach
+            const framework = await loadPromptFramework();
+            prompt = concatenatePrompt(framework, response.articleText);
+            console.log("Using prompt framework for analysis");
+            
+            // Continue with analysis after prompt is ready
+            await continueWithAnalysis(prompt, response, tab, loadingDiv, progressContainer, resultsDiv);
+          } catch (error) {
+            console.error("Error using prompt framework:", error);
+            loadingDiv.style.display = "none"; // Hide spinner
+            progressContainer.style.display = "none"; // Hide progress updates
+            alert("Error preparing analysis prompt: " + error.message);
             }
           } catch (error) {
             loadingDiv.style.display = "none"; // Hide spinner
@@ -540,6 +512,7 @@ Provide your analysis in JSON format with the following fields:
       updateProgressStatus("Sending to AI for analysis...");
       
       // Send the article text AND prompt to your backend server
+      console.log("Sending prompt to backend:", prompt);
       const res = await fetch("http://127.0.0.1:5000/analyze", {
         method: "POST",
         headers: {
@@ -603,6 +576,47 @@ Provide your analysis in JSON format with the following fields:
   }
 });
 
+// Function to create dynamic text bubbles based on the analysis data and promptFramework
+async function createDynamicTextBubbles(analysis, parentElement) {
+  try {
+    // Get the promptFramework from Chrome storage
+    const framework = await loadPromptFramework();
+    
+    // Get dashboard items from the analysis, starting from dashboard_item_3
+    const dashboardItems = Object.keys(analysis)
+      .filter(key => key.startsWith('dashboard_item_'))
+      .filter(key => {
+        const itemNumber = parseInt(key.split('_').pop());
+        return itemNumber >= 3; // Only include dashboard_item_3 and higher
+      })
+      .sort((a, b) => {
+        // Sort by item number to ensure correct order
+        const numA = parseInt(a.split('_').pop());
+        const numB = parseInt(b.split('_').pop());
+        return numA - numB;
+      });
+    
+    // Get dashboard item sections from the framework
+    const dashboardSections = getSectionsByCategory(framework, 'dashboard_items');
+    
+    // Create a text bubble for each dashboard item (starting from dashboard_item_3)
+    dashboardItems.forEach(itemKey => {
+      // Find the corresponding section in the framework
+      const section = dashboardSections.find(section => section.id === itemKey);
+      
+      // If section exists, use its title, otherwise use a default title
+      const title = section ? section.title : `Dashboard Item ${itemKey.split('_').pop()}`;
+      
+      // Create the text bubble
+      createTextBubble(title, analysis[itemKey], parentElement);
+    });
+  } catch (error) {
+    console.error("Error creating dynamic text bubbles:", error);
+    // No fallback to hardcoded approach - let the error propagate
+    throw error;
+  }
+}
+
 function displayResults(analysis) {
   // Hide loading spinner
   const loadingDiv = document.getElementById("loading");
@@ -615,7 +629,7 @@ function displayResults(analysis) {
   const biasArrow = document.getElementById("bias-arrow");
 
   // Calculate the position of the arrow based on bias score
-  const biasScore = analysis.bias_score; // Assume bias_score is between -5 and +5
+  const biasScore = analysis.dashboard_item_1; // Use dashboard_item_1 for bias score (-5 to +5)
   let biasPercentage = ((biasScore + 5) / 10) * 100; // Map -5 to 0%, +5 to 100%
 
   // Clamp the percentage between 0% and 100%
@@ -633,15 +647,10 @@ function displayResults(analysis) {
   otherResultsDiv.innerHTML = ""; // Clear previous results
 
   // Create text bubbles for other metrics
-  createSummaryBubble("Bias Analysis Result", analysis.analysis_summary, summaryDiv);
+  createSummaryBubble("Bias Analysis Result", analysis.dashboard_item_2, summaryDiv);
   
-  // Map the new dashboard item IDs to the appropriate UI elements
-  createTextBubble("Article Summary", analysis.dashboard_item_3 || analysis.content_summary, otherResultsDiv);
-  createTextBubble("Historical Context", analysis.dashboard_item_4 || analysis.context, otherResultsDiv);
-  createTextBubble("Language & Tone", analysis.dashboard_item_5 || analysis.language_tone, otherResultsDiv);
-  createTextBubble("Framing & Perspective", analysis.dashboard_item_6 || analysis.framing_perspective, otherResultsDiv);
-  createTextBubble("Alternative Perspectives", analysis.dashboard_item_7 || analysis.alternative_perspectives, otherResultsDiv);
-  createTextBubble("Publisher Bias", analysis.dashboard_item_8 || analysis.publisher_bias, otherResultsDiv);
+  // Create dynamic text bubbles for dashboard items 3 and higher
+  createDynamicTextBubbles(analysis, otherResultsDiv);
 }
 
 function createSummaryBubble(title, content, parentElement) {

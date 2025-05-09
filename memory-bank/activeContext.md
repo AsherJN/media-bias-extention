@@ -42,18 +42,21 @@ The Media Bias Analyzer is currently at version 2.0, with a focus on the followi
 - Modified backend analyze endpoint to accept and use a provided prompt parameter (media-bias-backend/app.py)
 - Converted the AI bias prompt from a string to a structured JSON format (promptFramework.json)
 - Created utility functions for working with the JSON prompt framework (promptUtils.js)
-- Updated the extension to use the new JSON-based prompt approach while maintaining backward compatibility
 - Removed all JavaScript functions related to section-based prompt editing
 - Improved asynchronous handling in the analyze button click handler
 - Restructured promptFramework.json to use a categorized approach with three main groups:
   - Personality (role, context)
   - Dashboard Items (all dashboard_item_* sections)
   - Prompt Instructions (article_text, task, json_schema)
-- Enhanced promptUtils.js with new functions to support the categorized JSON structure:
+- Enhanced promptUtils.js with functions to support the categorized JSON structure:
   - Added flattenSections() to convert nested structure to flat array
   - Added findSectionById() to locate sections in the nested structure
   - Added getSectionsByCategory() to get sections from a specific category
-  - Updated existing functions to maintain backward compatibility
+- Implemented dynamic text bubble creation in popup.js:
+  - Added createDynamicTextBubbles() function that dynamically creates text bubbles based on dashboard items in the analysis response
+  - Function reads promptFramework.json from Chrome storage to get corresponding titles for each dashboard item
+  - Removed hardcoded fallback approaches to ensure technology alignment
+  - Makes the UI more maintainable and adaptable to changes in the backend response structure
 
 ### Backend Refinements
 - Updated the OpenAI integration to use GPT-4o
@@ -61,8 +64,23 @@ The Media Bias Analyzer is currently at version 2.0, with a focus on the followi
 - Implemented JSON response formatting for consistent data structure
 - Pinned OpenAI package to version 0.28.1 to resolve import compatibility issues
 - Removed backend generate_prompt() function and now require prompt sent from frontend
-- Added map_json_fields() to map new dashboard item fields for backward compatibility
 - Updated analyze endpoint to remove fallback generate_prompt and enforce provided prompt usage
+
+### Standardization Improvements
+- Removed all backward compatibility code from the codebase
+- Removed map_json_fields() function from app.py that was mapping new JSON field names to old ones
+- Updated the analyze endpoint to return raw JSON without field mapping
+- Refactored promptUtils.js to only work with the standardized nested JSON structure
+- Removed conditional checks for old flat structure in all utility functions
+- Updated background.js to no longer store full prompt string for backward compatibility
+- Modified popup.js to remove fallback to legacy prompt approach
+- Updated displayResults() function to use only standardized dashboard_item_X field names
+- Simplified code throughout the application by standardizing on a single JSON structure
+- Fixed naming inconsistency in popup.js where dashboard_item_1 and dashboard_item_2 were not being properly displayed on the frontend
+  - Updated displayResults() function to use dashboard_item_1 instead of bias_score for the bias meter
+  - Updated displayResults() function to use dashboard_item_2 instead of analysis_summary for the summary section
+  - Added a text bubble for dashboard_item_1 (Overall Bias Score) in the results section
+  - Updated saveToHistory() function to use dashboard_item_1 instead of bias_score when saving to history
 
 ## Next Steps
 
@@ -114,7 +132,7 @@ The Media Bias Analyzer is currently at version 2.0, with a focus on the followi
 - **Event-Driven Architecture**: Using event listeners for user interactions
 - **Asynchronous Operations**: Handling API calls and UI updates asynchronously
 - **Modular Data Structures**: Using structured JSON for configuration and customization
-- **Backward Compatibility**: Maintaining support for legacy approaches while introducing new patterns
+- **Standardized Approach**: Using consistent field naming and data structures throughout the codebase
 
 ### UI Design Principles
 - **Clean, Modern Aesthetic**: Using a blue-based color scheme with ample white space
@@ -135,7 +153,7 @@ The Media Bias Analyzer is currently at version 2.0, with a focus on the followi
 - Text extraction from news sites requires balancing simplicity with effectiveness
 - Managing API costs is a significant consideration for AI-powered tools
 - Structured JSON provides a more maintainable way to manage complex prompts
-- Backward compatibility requires careful planning when introducing new architectural patterns
+- Standardizing on a single data structure simplifies code and improves maintainability
 
 ### User Experience Insights
 - Users prefer clear, visual representations of bias rather than just numerical scores

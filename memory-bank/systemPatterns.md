@@ -86,6 +86,8 @@ The Media Bias Analyzer follows a client-server architecture with the following 
 ### Strategy Pattern
 - Different analysis components (bias score, language tone, etc.) are processed independently
 - Each component has its own display strategy in the UI
+- Dynamic text bubble creation adapts to the actual dashboard items returned by the backend
+- UI components are generated based on data structure rather than hardcoded implementation
 
 ### Composite Pattern
 - The prompt framework uses a composite structure where each section is a component
@@ -93,6 +95,8 @@ The Media Bias Analyzer follows a client-server architecture with the following 
 
 ### Factory Pattern
 - The promptUtils.js file contains factory functions for creating and manipulating prompt components
+- The createDynamicTextBubbles function acts as a factory for UI components based on data structure
+- Dynamic creation of UI elements based on the analysis response structure improves flexibility
 
 ## Key Technical Decisions
 
@@ -123,9 +127,16 @@ The Media Bias Analyzer follows a client-server architecture with the following 
 - Analysis history is stored locally using Chrome's storage API
 - This provides persistence without requiring user accounts
 
-### Backward Compatibility
-- The new JSON-based prompt approach maintains compatibility with the old string-based approach
-- This allows for a smooth transition without breaking existing functionality
+### Standardized JSON Structure
+- The AI prompt uses a standardized JSON structure throughout the application
+- All components use the same field naming convention (dashboard_item_X)
+- No backward compatibility code is maintained, simplifying the codebase
+
+### Dynamic UI Generation
+- UI components are dynamically generated based on the analysis response structure
+- The createDynamicTextBubbles function reads the promptFramework to get titles for dashboard items
+- This approach improves maintainability and adaptability to changes in the backend response
+- Removal of hardcoded fallbacks ensures consistent technology alignment throughout the application
 
 ## Critical Implementation Paths
 
@@ -151,7 +162,7 @@ User opens settings → Changes preferences → Settings saved to storage → Pr
 
 ### Prompt Framework Usage
 ```
-Framework loaded from JSON → Sections flattened → Sections sorted by order → Sections concatenated → Placeholders replaced → Used in analysis
+Framework loaded from JSON → Sections flattened to array → Sections sorted by order → Sections concatenated → Placeholders replaced → Used in analysis
 ```
 
 ## Error Handling
@@ -169,7 +180,7 @@ Framework loaded from JSON → Sections flattened → Sections sorted by order �
    - Graceful degradation when API is unavailable
 
 4. **Framework Loading Failures**
-   - Fallback to legacy prompt approach if framework loading fails
+   - Clear error handling with user-friendly messages
    - Error logging for debugging framework issues
 
 ## Security Considerations

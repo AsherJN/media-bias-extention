@@ -56,13 +56,6 @@ async function loadPromptFramework() {
  */
 function flattenSections(framework) {
   try {
-    // Check if we have the new nested structure or the old flat structure
-    if (Array.isArray(framework.sections)) {
-      // Old structure - already flat
-      return framework.sections;
-    }
-    
-    // New structure - need to flatten
     const flatSections = [];
     
     // Iterate through each category
@@ -133,23 +126,7 @@ function concatenatePrompt(framework, articleText) {
  */
 function findSectionById(framework, sectionId) {
   try {
-    // Check if we have the new nested structure or the old flat structure
-    if (Array.isArray(framework.sections)) {
-      // Old structure - find in flat array
-      const sectionIndex = framework.sections.findIndex(section => section.id === sectionId);
-      
-      if (sectionIndex === -1) {
-        return null;
-      }
-      
-      return {
-        section: framework.sections[sectionIndex],
-        categoryKey: null,
-        sectionIndex: sectionIndex
-      };
-    }
-    
-    // New structure - search in each category
+    // Search in each category
     for (const categoryKey in framework.sections) {
       const category = framework.sections[categoryKey];
       if (category.items && Array.isArray(category.items)) {
@@ -191,13 +168,7 @@ function updatePromptSection(framework, sectionId, newContent) {
     }
     
     // Update the section content
-    if (sectionInfo.categoryKey === null) {
-      // Old structure
-      updatedFramework.sections[sectionInfo.sectionIndex].content = newContent;
-    } else {
-      // New structure
-      updatedFramework.sections[sectionInfo.categoryKey].items[sectionInfo.sectionIndex].content = newContent;
-    }
+    updatedFramework.sections[sectionInfo.categoryKey].items[sectionInfo.sectionIndex].content = newContent;
     
     // Update the last_updated timestamp
     updatedFramework.metadata.last_updated = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
@@ -249,14 +220,7 @@ async function savePromptFramework(framework) {
  */
 function getSectionsByCategory(framework, categoryKey) {
   try {
-    // Check if we have the new nested structure or the old flat structure
-    if (Array.isArray(framework.sections)) {
-      // Old structure - can't get by category
-      console.warn('Cannot get sections by category: Framework uses old flat structure');
-      return [];
-    }
-    
-    // New structure - get sections from the specified category
+    // Get sections from the specified category
     if (framework.sections[categoryKey] && framework.sections[categoryKey].items) {
       return framework.sections[categoryKey].items;
     }

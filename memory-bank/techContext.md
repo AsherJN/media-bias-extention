@@ -148,12 +148,17 @@ media-bias-analyzer/
   - `analysisResults`: Current analysis results
   - `analysisHistory`: Array of previous analyses with metadata
   - `promptFramework`: JSON structure for the AI prompt
-  - `biasAnalysisPrompt`: Legacy string version of the prompt (for backward compatibility)
 
 ### Content Extraction Strategy
 - Simple paragraph extraction using `document.querySelectorAll("p")`
 - Extracts article metadata (title, URL, favicon)
 - Future improvement opportunity: More sophisticated extraction logic
+
+### Dynamic UI Generation
+- **createDynamicTextBubbles Function**: Dynamically creates UI components based on analysis response
+- **Dashboard Item Mapping**: Reads promptFramework.json to get titles for each dashboard item
+- **Flexible Component Creation**: Only creates components for dashboard items that exist in the response
+- **Error Handling**: Propagates errors without falling back to hardcoded approaches
 
 ### Prompt Framework Usage
 - **JSON Structure**: Organizes the prompt into categories, each containing sections with metadata
@@ -171,7 +176,7 @@ media-bias-analyzer/
   - `json_id`: For dashboard items, the ID used in the JSON response
 - **Utility Functions**:
   - `loadPromptFramework()`: Loads the framework from JSON
-  - `flattenSections()`: Converts nested structure to flat array for backward compatibility
+  - `flattenSections()`: Converts nested structure to flat array for processing
   - `concatenatePrompt()`: Combines sections into a complete prompt string
   - `findSectionById()`: Locates sections in the nested structure
   - `updatePromptSection()`: Updates specific sections
@@ -202,4 +207,5 @@ media-bias-analyzer/
 - **UI Responsiveness**: Asynchronous operations to keep UI responsive
 - **Storage Limits**: History limited to 50 entries to prevent excessive storage use
 - **JSON Parsing**: Efficient parsing and manipulation of JSON data structures
-- **Backward Compatibility**: Fallback mechanisms for handling legacy prompt format
+- **Error Propagation**: Clear error handling without fallbacks for consistent behavior
+- **Dynamic UI Generation**: UI components created based on actual data structure improves efficiency

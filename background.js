@@ -18,11 +18,6 @@ chrome.runtime.onInstalled.addListener(async () => {
       // Store in Chrome storage
       chrome.storage.local.set({ promptFramework });
       console.log("Default prompt framework initialized in storage");
-      
-      // For backward compatibility, also generate and store the full prompt string
-      const fullPrompt = concatenatePrompt(promptFramework, "{article_text}");
-      chrome.storage.local.set({ biasAnalysisPrompt: fullPrompt });
-      console.log("Default bias analysis prompt initialized in storage for backward compatibility");
     }
   } catch (error) {
     console.error("Error initializing prompt framework:", error);
@@ -74,10 +69,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "updatePromptFramework") {
     savePromptFramework(request.promptFramework)
       .then(() => {
-        // Also update the full prompt for backward compatibility
-        const fullPrompt = concatenatePrompt(request.promptFramework, "{article_text}");
-        chrome.storage.local.set({ biasAnalysisPrompt: fullPrompt });
-        
         sendResponse({ success: true });
       })
       .catch(error => {

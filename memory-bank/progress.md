@@ -42,7 +42,7 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - **Flask API**: Backend server processes analysis requests
 - **OpenAI Integration**: GPT-4o model performs the actual analysis
 - **JSON Formatting**: Structured data exchange between components
-- **Prompt Management Shift**: Removed `generate_prompt()` fallback; now backend requires prompt from frontend and uses `map_json_fields()` for compatibility
+- **Standardized JSON Structure**: Backend returns raw JSON with standardized field names
 
 ## What's Left to Build
 
@@ -75,7 +75,8 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 3. **API Dependency**: Reliance on OpenAI API introduces potential points of failure
 4. **Performance Variability**: Analysis time can vary based on API response time
 5. **~~OpenAI Package Compatibility~~**: ~~The backend required an update from OpenAI package version 0.28.1 to 1.12.0 to resolve import compatibility issues~~ (Resolved)
-6. **JSON Schema Evolution**: Need to handle schema changes in the prompt framework as new features are added
+6. **~~Dashboard Items Display~~**: ~~Dashboard_item_1 and dashboard_item_2 were not appearing on the frontend due to naming inconsistencies between backend and frontend~~ (Resolved)
+7. **JSON Schema Evolution**: Need to handle schema changes in the prompt framework as new features are added
 
 ### User Experience Issues
 1. **Initial Setup Complexity**: Requires local server setup and API key
@@ -105,6 +106,7 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - **Storage Strategy**: Implemented local storage with history management
 - **Error Handling**: Improved robustness with better error handling
 - **Prompt Architecture**: Evolved from string-based to JSON-based prompt structure
+- **Code Standardization**: Removed all backward compatibility code for a cleaner, more maintainable codebase
 
 ### Feature Prioritization
 - **Core Analysis**: Initially focused on basic bias detection
@@ -127,6 +129,8 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - Settings framework
 - Improved backend integration with GPT-4o
 - JSON-based prompt framework with categorized structure for improved maintainability
+- Dynamic UI generation based on analysis response structure
+- Removed hardcoded fallback approaches for consistent technology alignment
 
 ### Future Versions
 - **Version 2.1**: Enhanced text extraction and settings implementation
@@ -142,6 +146,9 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - Local storage is effective for history but has limitations for cross-device use
 - Structured JSON provides a more maintainable way to manage complex prompts
 - Backward compatibility requires careful planning when introducing new architectural patterns
+- Consistent field naming between backend and frontend is critical for proper data display
+- Dynamic UI generation based on data structure improves maintainability and flexibility
+- Removing hardcoded fallbacks ensures consistent behavior and technology alignment
 
 ### Product Lessons
 - Users value multiple dimensions of analysis beyond simple bias scores

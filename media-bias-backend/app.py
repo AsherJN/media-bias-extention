@@ -22,24 +22,6 @@ def reformat_json_response(response_text):
     response_text = response_text.replace("```json", "").replace("```", "").strip()
     return response_text
 
-def map_json_fields(json_data):
-    """
-    Maps new JSON field names to old ones for backward compatibility.
-    """
-    result = json_data.copy()
-    field_mapping = {
-        "dashboard_item_3": "content_summary",
-        "dashboard_item_4": "context",
-        "dashboard_item_5": "language_tone",
-        "dashboard_item_6": "framing_perspective",
-        "dashboard_item_7": "alternative_perspectives",
-        "dashboard_item_8": "publisher_bias"
-    }
-    for new_field, old_field in field_mapping.items():
-        if new_field in json_data and old_field not in json_data:
-            result[old_field] = json_data[new_field]
-    return result
-
 # Initialize the Flask app
 app = Flask(__name__)
 CORS(app, resources={r"/analyze": {"origins": "*"}})
@@ -87,8 +69,7 @@ def analyze():
 
         try:
             analysis_json = json.loads(analysis)
-            mapped_json = map_json_fields(analysis_json)
-            return jsonify(mapped_json)
+            return jsonify(analysis_json)
         except json.JSONDecodeError as e:
             return jsonify({
                 'error': f'The AI response was not in valid JSON format. Please ensure your prompt maintains the proper structure and includes the article_text placeholder. Technical details: {str(e)}'
