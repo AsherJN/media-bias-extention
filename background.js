@@ -40,8 +40,31 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     // Load the prompt framework and generate the full prompt
     loadPromptFramework()
       .then(framework => {
-        const fullPrompt = concatenatePrompt(framework, "{article_text}");
-        sendResponse({ defaultPrompt: fullPrompt });
+        const promptObj = concatenatePrompt(framework, "{article_text}");
+        
+        // For backward compatibility, also generate a full prompt string
+        const allSections = flattenSections(framework);
+        const sortedSections = [...allSections].sort((a, b) => a.order - b.order);
+        const delimiter = '────────────────────────────────────────────────────────────────────────';
+        
+        let fullPrompt = '';
+        sortedSections.forEach((section, index) => {
+          let sectionContent = section.content;
+          if (section.has_placeholder && section.placeholder === '{article_text}') {
+            sectionContent = sectionContent.replace('{article_text}', "{article_text}");
+          }
+          
+          fullPrompt += sectionContent;
+          
+          if (index < sortedSections.length - 1) {
+            fullPrompt += '\n\n' + delimiter + '\n\n';
+          }
+        });
+        
+        sendResponse({ 
+          defaultPrompt: fullPrompt,
+          promptObj: promptObj
+        });
       })
       .catch(error => {
         console.error("Error generating default prompt:", error);

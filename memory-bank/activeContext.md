@@ -88,6 +88,20 @@ The Media Bias Analyzer is currently at version 2.0, with a focus on the followi
   - Added a text bubble for dashboard_item_1 (Overall Bias Score) in the results section
   - Updated saveToHistory() function to use dashboard_item_1 instead of bias_score when saving to history
 
+### Prompt Customization Fix
+- Fixed issue where custom roles in prompts weren't properly followed when also requiring JSON schema compliance
+- Modified the `concatenatePrompt` function in `promptUtils.js` to place all instructions in the `systemContent` and only the article text in the `userContent`
+- Updated test files to work with the new approach:
+  - `test_prompt_separation.js`
+  - `test_custom_role.js`
+  - `test_backend_direct.js`
+- Updated `custom_role_demo.html` to demonstrate the new approach with different role types
+- Updated documentation in `prompt_customization_fix.md` to reflect the solution
+- Enhanced the backend to ensure proper JSON formatting while maintaining role personality:
+  - Added `response_format={"type": "json_object"}` parameter to the OpenAI API call to force JSON output
+  - Added explicit instructions to maintain the role's personality within JSON fields
+  - This two-part solution ensures the AI model follows both the custom role personality and the JSON schema requirements
+
 ## Next Steps
 
 ### Short-term Priorities
@@ -98,6 +112,7 @@ The Media Bias Analyzer is currently at version 2.0, with a focus on the followi
    - History retention period
 3. **Add Export Functionality**: Allow users to export analysis results or history
 4. **Advanced Prompt Features**: Add ability to create, save, and manage multiple prompt templates
+5. **Fixed Prompt Customization**: Implemented a solution to ensure custom roles in prompts are properly applied by the AI model while maintaining JSON schema compliance
 
 ### Medium-term Goals
 1. **Deploy Backend Server**: Move from local-only backend to a hosted solution

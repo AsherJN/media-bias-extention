@@ -51,8 +51,11 @@ The Media Bias Analyzer follows a client-server architecture with the following 
 
 2. **Prompt Generation**
    - Extension loads the prompt framework from JSON
-   - Framework sections are concatenated into a complete prompt
-   - The `{article_text}` placeholder is replaced with the actual article text
+   - All instructions (role, context, dashboard items, task, JSON schema) are placed in the system message
+   - Only the article text is placed in the user message
+   - Additional instructions are added to maintain the role's personality within JSON fields
+   - The OpenAI API's response_format parameter is used to enforce JSON structure
+   - This ensures the AI model follows both the custom role personality and the JSON schema requirements with equal priority
 
 3. **Analysis Request**
    - Background script forwards the complete prompt to the Flask backend
@@ -152,7 +155,7 @@ User clicks "Analyze" → Content script extracts text → Text sent to backend 
 
 ### Prompt Generation
 ```
-Framework loaded from JSON → Sections sorted by order → Sections concatenated → Placeholders replaced
+Framework loaded from JSON → Sections flattened and sorted by order → All instructions placed in system message → Article text placed in user message → Sent as separate system/user messages to OpenAI API
 ```
 
 ### History Management
@@ -167,7 +170,7 @@ User opens settings → Changes preferences → Settings saved to storage → Pr
 
 ### Prompt Framework Usage
 ```
-Framework loaded from JSON → Sections flattened to array → Sections sorted by order → Sections concatenated → Placeholders replaced → Used in analysis
+Framework loaded from JSON → Sections flattened to array → Sections sorted by order → Article text section identified and extracted → All other sections placed in system message → Article text placed in user message → Used in analysis
 ```
 
 ### Prompt Customization

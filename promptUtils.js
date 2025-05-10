@@ -75,10 +75,10 @@ function flattenSections(framework) {
 }
 
 /**
- * Concatenates the prompt framework sections into a complete prompt string
+ * Concatenates the prompt framework sections into a complete prompt object with system and user content
  * @param {Object} framework - The prompt framework object
  * @param {string} articleText - The article text to insert into the prompt
- * @returns {string} The complete prompt string
+ * @returns {Object} Object containing systemContent and userContent
  */
 function concatenatePrompt(framework, articleText) {
   try {
@@ -91,27 +91,41 @@ function concatenatePrompt(framework, articleText) {
     // Delimiter line
     const delimiter = '────────────────────────────────────────────────────────────────────────';
     
-    // Build the prompt string
-    let promptString = '';
+    // Find the article_text section
+    const articleTextSection = allSections.find(section => section.id === 'article_text');
+    
+    // Build the system content (everything except the article text)
+    let systemContent = '';
+    
+    // Build the user content (just the article text)
+    let userContent = articleText;
     
     sortedSections.forEach((section, index) => {
-      // Add section content
-      let sectionContent = section.content;
-      
-      // Replace article_text placeholder if present
-      if (section.has_placeholder && section.placeholder === '{article_text}') {
-        sectionContent = sectionContent.replace('{article_text}', articleText);
+      // Skip the article_text section as we'll handle it separately
+      if (section.id === 'article_text') {
+        return;
       }
       
-      promptString += sectionContent;
+      // Add section content to system content
+      let sectionContent = section.content;
+      
+      // Replace article_text placeholder if present (shouldn't happen, but just in case)
+      if (section.has_placeholder && section.placeholder === '{article_text}') {
+        sectionContent = sectionContent.replace('{article_text}', '[ARTICLE_TEXT_PLACEHOLDER]');
+      }
+      
+      systemContent += sectionContent;
       
       // Add delimiter after each section except the last one
       if (index < sortedSections.length - 1) {
-        promptString += '\n\n' + delimiter + '\n\n';
+        systemContent += '\n\n' + delimiter + '\n\n';
       }
     });
     
-    return promptString;
+    return {
+      systemContent,
+      userContent
+    };
   } catch (error) {
     console.error('Error in concatenatePrompt:', error);
     throw error;

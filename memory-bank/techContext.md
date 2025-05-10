@@ -137,10 +137,11 @@ media-bias-analyzer/
 ## Tool Usage Patterns
 
 ### OpenAI API Usage
-- **System Message**: Sets the role as a "highly vigilant internet watchdog"
-- **User Message**: Contains the article text and detailed analysis rubric
+- **System Message**: Contains the role section from the prompt framework (e.g., "highly vigilant internet watchdog")
+- **User Message**: Contains the remaining prompt sections and article text
 - **Temperature**: Set to 0.3 for more consistent outputs
 - **Response Format**: Structured JSON with specific analysis fields
+- **Prompt Separation**: Role section is sent as system message for stronger persona adoption
 
 ### Chrome Storage API Usage
 - **Local Storage**: Used for persisting data between sessions

@@ -77,6 +77,7 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 5. **~~OpenAI Package Compatibility~~**: ~~The backend required an update from OpenAI package version 0.28.1 to 1.12.0 to resolve import compatibility issues~~ (Resolved)
 6. **~~Dashboard Items Display~~**: ~~Dashboard_item_1 and dashboard_item_2 were not appearing on the frontend due to naming inconsistencies between backend and frontend~~ (Resolved)
 7. **JSON Schema Evolution**: Need to handle schema changes in the prompt framework as new features are added
+8. **~~Prompt Customization~~**: ~~Custom roles in prompts (like the Gen-Z middle schooler) not being properly applied by the AI model while maintaining JSON schema compliance~~ (Resolved with a two-part solution: 1) placing all instructions in the system message and only the article text in the user message, 2) using the OpenAI API's response_format parameter to enforce JSON structure while adding explicit instructions to maintain the role's personality within JSON fields)
 
 ### User Experience Issues
 1. **Initial Setup Complexity**: Requires local server setup and API key

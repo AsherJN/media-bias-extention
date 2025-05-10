@@ -753,15 +753,14 @@ document.getElementById("analyze-button").addEventListener("click", async () => 
             updateProgressStatus("Preparing analysis...");
             
             // Load the prompt framework
-            let prompt;
             try {
             // Get the prompt using the framework approach
             const framework = await loadPromptFramework();
-            prompt = concatenatePrompt(framework, response.articleText);
+            const promptObj = concatenatePrompt(framework, response.articleText);
             console.log("Using prompt framework for analysis");
             
             // Continue with analysis after prompt is ready
-            await continueWithAnalysis(prompt, response, tab, loadingDiv, progressContainer, resultsDiv);
+            await continueWithAnalysis(promptObj, response, tab, loadingDiv, progressContainer, resultsDiv);
           } catch (error) {
             console.error("Error using prompt framework:", error);
             loadingDiv.style.display = "none"; // Hide spinner
@@ -787,13 +786,13 @@ document.getElementById("analyze-button").addEventListener("click", async () => 
   });
   
   // Function to continue with analysis after prompt is ready
-  async function continueWithAnalysis(prompt, response, tab, loadingDiv, progressContainer, resultsDiv) {
+  async function continueWithAnalysis(promptObj, response, tab, loadingDiv, progressContainer, resultsDiv) {
     try {
       // Update progress status
       updateProgressStatus("Sending to AI for analysis...");
       
-      // Send the article text AND prompt to your backend server
-      console.log("Sending prompt to backend:", prompt);
+      // Send the article text, system content, and user content to your backend server
+      console.log("Sending prompt to backend:", promptObj);
       const res = await fetch("http://127.0.0.1:5000/analyze", {
         method: "POST",
         headers: {
@@ -801,7 +800,8 @@ document.getElementById("analyze-button").addEventListener("click", async () => 
         },
         body: JSON.stringify({ 
           text: response.articleText,
-          prompt: prompt
+          systemContent: promptObj.systemContent,
+          userContent: promptObj.userContent
         }),
       });
 
@@ -859,6 +859,7 @@ document.getElementById("analyze-button").addEventListener("click", async () => 
 
 // Function to create dynamic text bubbles based on the analysis data and promptFramework
 async function createDynamicTextBubbles(analysis, parentElement) {
+  console.log(analysis)
   try {
     // Get the promptFramework from Chrome storage
     const framework = await loadPromptFramework();
