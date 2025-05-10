@@ -179,9 +179,17 @@ media-bias-analyzer/
   - `flattenSections()`: Converts nested structure to flat array for processing
   - `concatenatePrompt()`: Combines sections into a complete prompt string
   - `findSectionById()`: Locates sections in the nested structure
-  - `updatePromptSection()`: Updates specific sections
+  - `updatePromptSection()`: Updates section content
+  - `updateSectionTitle()`: Updates section title
   - `getSectionsByCategory()`: Gets sections from a specific category
   - `savePromptFramework()`: Persists changes to storage
+- **Prompt Editor UI**:
+  - Separate sections for Personality and Dashboard Items
+  - Personality items: Content-only editing
+  - Dashboard items: Title and content editing
+  - Individual save buttons for each section
+  - Reset to Default button to restore original prompt
+  - Changes saved directly to Chrome storage
 
 ## Security Considerations
 

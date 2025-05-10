@@ -181,6 +181,37 @@ function updatePromptSection(framework, sectionId, newContent) {
 }
 
 /**
+ * Updates a section title in the prompt framework
+ * @param {Object} framework - The prompt framework object
+ * @param {string} sectionId - The ID of the section to update
+ * @param {string} newTitle - The new title for the section
+ * @returns {Object} The updated framework object
+ */
+function updateSectionTitle(framework, sectionId, newTitle) {
+  try {
+    const updatedFramework = JSON.parse(JSON.stringify(framework)); // Deep copy
+    
+    // Find the section to update
+    const sectionInfo = findSectionById(updatedFramework, sectionId);
+    
+    if (!sectionInfo) {
+      throw new Error(`Section with ID "${sectionId}" not found`);
+    }
+    
+    // Update the section title
+    updatedFramework.sections[sectionInfo.categoryKey].items[sectionInfo.sectionIndex].title = newTitle;
+    
+    // Update the last_updated timestamp
+    updatedFramework.metadata.last_updated = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    
+    return updatedFramework;
+  } catch (error) {
+    console.error('Error in updateSectionTitle:', error);
+    throw error;
+  }
+}
+
+/**
  * Saves the prompt framework to storage
  * @param {Object} framework - The prompt framework object to save
  * @returns {Promise<void>}
@@ -238,6 +269,7 @@ if (typeof module !== 'undefined' && module.exports) {
     loadPromptFramework,
     concatenatePrompt,
     updatePromptSection,
+    updateSectionTitle,
     savePromptFramework,
     flattenSections,
     findSectionById,

@@ -123,10 +123,291 @@ document.addEventListener("DOMContentLoaded", async () => {
   const promptViewPage = document.getElementById("prompt-view-page");
   const promptBack = document.getElementById("prompt-back");
   
-  // Show prompt view page when view prompt button is clicked
-  viewPromptButton.addEventListener("click", () => {
-    promptViewPage.style.display = "flex";
+// Show prompt view page when view prompt button is clicked
+viewPromptButton.addEventListener("click", () => {
+  promptViewPage.style.display = "flex";
+  // Initialize the prompt editor when the page is opened
+  initPromptEditor();
+});
+
+// Function to initialize the prompt editor
+async function initPromptEditor() {
+  try {
+    // Load the prompt framework
+    const framework = await loadPromptFramework();
+    
+    // Render the personality section
+    renderPersonalitySection(framework);
+    
+    // Render the dashboard items section
+    renderDashboardItemsSection(framework);
+    
+    // Set up the reset button
+    setupResetButton();
+  } catch (error) {
+    console.error('Error initializing prompt editor:', error);
+    document.querySelector('.prompt-content').innerHTML = 
+      `<div class="prompt-warning-box">
+        <p>Error loading prompt framework: ${error.message}</p>
+      </div>`;
+  }
+}
+
+// Function to render the personality section
+function renderPersonalitySection(framework) {
+  const personalityContainer = document.getElementById('personality-cards');
+  personalityContainer.innerHTML = ''; // Clear existing content
+  
+  // Get personality sections
+  const personalitySections = getSectionsByCategory(framework, 'personality');
+  
+  if (personalitySections.length === 0) {
+    personalityContainer.innerHTML = '<p>No personality sections found.</p>';
+    return;
+  }
+  
+  // Create a card for each personality section
+  personalitySections.forEach(section => {
+    const card = createPersonalityCard(section);
+    personalityContainer.appendChild(card);
   });
+}
+
+// Function to render the dashboard items section
+function renderDashboardItemsSection(framework) {
+  const dashboardContainer = document.getElementById('dashboard-items-cards');
+  dashboardContainer.innerHTML = ''; // Clear existing content
+  
+  // Get dashboard item sections
+  const dashboardSections = getSectionsByCategory(framework, 'dashboard_items');
+  
+  if (dashboardSections.length === 0) {
+    dashboardContainer.innerHTML = '<p>No dashboard items found.</p>';
+    return;
+  }
+  
+  // Create a card for each dashboard item
+  dashboardSections.forEach(section => {
+    const card = createDashboardItemCard(section);
+    dashboardContainer.appendChild(card);
+  });
+}
+
+// Function to create a personality card
+function createPersonalityCard(section) {
+  const card = document.createElement('div');
+  card.className = 'prompt-card';
+  card.dataset.sectionId = section.id;
+  
+  // Create title display
+  const titleDiv = document.createElement('div');
+  titleDiv.className = 'prompt-card-title';
+  titleDiv.textContent = section.title;
+  
+  // Create content editor
+  const contentField = document.createElement('div');
+  contentField.className = 'prompt-card-field';
+  
+  const contentLabel = document.createElement('label');
+  contentLabel.textContent = 'Content:';
+  
+  const contentTextarea = document.createElement('textarea');
+  contentTextarea.value = section.content;
+  contentTextarea.dataset.originalContent = section.content;
+  
+  contentField.appendChild(contentLabel);
+  contentField.appendChild(contentTextarea);
+  
+  // Create save button and success message
+  const saveContainer = document.createElement('div');
+  saveContainer.style.display = 'flex';
+  saveContainer.style.alignItems = 'center';
+  
+  const saveButton = document.createElement('button');
+  saveButton.className = 'prompt-card-save';
+  saveButton.textContent = 'Save';
+  
+  const saveSuccess = document.createElement('span');
+  saveSuccess.className = 'save-success';
+  saveSuccess.textContent = 'Saved successfully!';
+  
+  saveContainer.appendChild(saveButton);
+  saveContainer.appendChild(saveSuccess);
+  
+  // Add event listener to save button
+  saveButton.addEventListener('click', async () => {
+    try {
+      // Get the current framework
+      const framework = await loadPromptFramework();
+      
+      // Update the section content
+      const updatedFramework = updatePromptSection(
+        framework, 
+        section.id, 
+        contentTextarea.value
+      );
+      
+      // Save the updated framework
+      await savePromptFramework(updatedFramework);
+      
+      // Update the original content reference
+      contentTextarea.dataset.originalContent = contentTextarea.value;
+      
+      // Show success message
+      saveSuccess.classList.add('visible');
+      setTimeout(() => {
+        saveSuccess.classList.remove('visible');
+      }, 2000);
+    } catch (error) {
+      console.error('Error saving personality section:', error);
+      alert('Error saving changes: ' + error.message);
+    }
+  });
+  
+  // Assemble the card
+  card.appendChild(titleDiv);
+  card.appendChild(contentField);
+  card.appendChild(saveContainer);
+  
+  return card;
+}
+
+// Function to create a dashboard item card
+function createDashboardItemCard(section) {
+  const card = document.createElement('div');
+  card.className = 'prompt-card';
+  card.dataset.sectionId = section.id;
+  
+  // Create title display
+  const titleDiv = document.createElement('div');
+  titleDiv.className = 'prompt-card-title';
+  titleDiv.textContent = section.title;
+  
+  // Create title editor
+  const titleField = document.createElement('div');
+  titleField.className = 'prompt-card-field';
+  
+  const titleLabel = document.createElement('label');
+  titleLabel.textContent = 'Title:';
+  
+  const titleInput = document.createElement('input');
+  titleInput.type = 'text';
+  titleInput.value = section.title;
+  titleInput.dataset.originalTitle = section.title;
+  
+  titleField.appendChild(titleLabel);
+  titleField.appendChild(titleInput);
+  
+  // Create content editor
+  const contentField = document.createElement('div');
+  contentField.className = 'prompt-card-field';
+  
+  const contentLabel = document.createElement('label');
+  contentLabel.textContent = 'Content:';
+  
+  const contentTextarea = document.createElement('textarea');
+  contentTextarea.value = section.content;
+  contentTextarea.dataset.originalContent = section.content;
+  
+  contentField.appendChild(contentLabel);
+  contentField.appendChild(contentTextarea);
+  
+  // Create save button and success message
+  const saveContainer = document.createElement('div');
+  saveContainer.style.display = 'flex';
+  saveContainer.style.alignItems = 'center';
+  
+  const saveButton = document.createElement('button');
+  saveButton.className = 'prompt-card-save';
+  saveButton.textContent = 'Save';
+  
+  const saveSuccess = document.createElement('span');
+  saveSuccess.className = 'save-success';
+  saveSuccess.textContent = 'Saved successfully!';
+  
+  saveContainer.appendChild(saveButton);
+  saveContainer.appendChild(saveSuccess);
+  
+  // Add event listener to save button
+  saveButton.addEventListener('click', async () => {
+    try {
+      // Get the current framework
+      const framework = await loadPromptFramework();
+      
+      // First update the section content
+      let updatedFramework = updatePromptSection(
+        framework, 
+        section.id, 
+        contentTextarea.value
+      );
+      
+      // Then update the title
+      updatedFramework = updateSectionTitle(
+        updatedFramework,
+        section.id,
+        titleInput.value
+      );
+      
+      // Save the updated framework
+      await savePromptFramework(updatedFramework);
+      
+      // Update the original references
+      titleInput.dataset.originalTitle = titleInput.value;
+      contentTextarea.dataset.originalContent = contentTextarea.value;
+      
+      // Update the card title display
+      titleDiv.textContent = titleInput.value;
+      
+      // Show success message
+      saveSuccess.classList.add('visible');
+      setTimeout(() => {
+        saveSuccess.classList.remove('visible');
+      }, 2000);
+    } catch (error) {
+      console.error('Error saving dashboard item:', error);
+      alert('Error saving changes: ' + error.message);
+    }
+  });
+  
+  // Assemble the card
+  card.appendChild(titleDiv);
+  card.appendChild(titleField);
+  card.appendChild(contentField);
+  card.appendChild(saveContainer);
+  
+  return card;
+}
+
+// Function to set up the reset button
+function setupResetButton() {
+  const resetButton = document.getElementById('reset-prompt-button');
+  
+  resetButton.addEventListener('click', async () => {
+    if (confirm('Are you sure you want to reset the prompt to default? All customizations will be lost.')) {
+      try {
+        // Clear the stored framework
+        chrome.storage.local.remove(['promptFramework'], async () => {
+          // Load the default framework from file
+          const defaultFramework = await fetch(chrome.runtime.getURL('promptFramework.json'))
+            .then(response => response.json());
+          
+          // Store the default framework
+          await savePromptFramework(defaultFramework);
+          
+          // Re-render the sections
+          renderPersonalitySection(defaultFramework);
+          renderDashboardItemsSection(defaultFramework);
+          
+          // Show confirmation
+          alert('Prompt has been reset to default.');
+        });
+      } catch (error) {
+        console.error('Error resetting prompt:', error);
+        alert('Error resetting prompt: ' + error.message);
+      }
+    }
+  });
+}
   
   // Return to settings page when back button is clicked
   promptBack.addEventListener("click", () => {

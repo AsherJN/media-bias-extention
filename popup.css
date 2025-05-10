@@ -732,6 +732,88 @@ button:hover {
   background-color: #4A6FBF;
 }
 
+/* Prompt Editor Card Styles */
+.prompt-card {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.prompt-card-title {
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #4A6FBF;
+}
+
+.prompt-card-field {
+  margin-bottom: 15px;
+}
+
+.prompt-card-field label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #555;
+}
+
+.prompt-card-field textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.prompt-card-field input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.prompt-card-field textarea:focus,
+.prompt-card-field input:focus {
+  outline: none;
+  border-color: #628FF2;
+  box-shadow: 0 0 0 2px rgba(98, 143, 242, 0.2);
+}
+
+.prompt-card-save {
+  background-color: #628FF2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.prompt-card-save:hover {
+  background-color: #4A6FBF;
+}
+
+.save-success {
+  color: #28a745;
+  font-size: 14px;
+  margin-left: 10px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.save-success.visible {
+  opacity: 1;
+}
+
 /* History Entries Styling */
 .history-entries {
   display: flex;

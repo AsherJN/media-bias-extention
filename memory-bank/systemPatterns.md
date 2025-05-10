@@ -118,6 +118,11 @@ The Media Bias Analyzer follows a client-server architecture with the following 
 - Sections are organized into categories (Personality, Dashboard Items, Prompt Instructions)
 - This enables more flexible manipulation and customization of the prompt
 - The categorized structure improves maintainability and organization
+- A comprehensive editor UI allows users to customize the prompt:
+  - Personality sections can have their content edited
+  - Dashboard Items can have both title and content edited
+  - Changes are saved directly to Chrome storage
+  - A Reset to Default button restores the original prompt
 
 ### Expandable UI Sections
 - Analysis results are organized into collapsible sections
@@ -163,6 +168,11 @@ User opens settings → Changes preferences → Settings saved to storage → Pr
 ### Prompt Framework Usage
 ```
 Framework loaded from JSON → Sections flattened to array → Sections sorted by order → Sections concatenated → Placeholders replaced → Used in analysis
+```
+
+### Prompt Customization
+```
+User opens prompt editor → Framework loaded from storage → UI renders editable cards → User edits content/title → Changes saved to storage → Updated framework used in future analyses
 ```
 
 ## Error Handling

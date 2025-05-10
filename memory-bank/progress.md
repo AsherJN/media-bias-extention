@@ -29,7 +29,7 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - **Progress Updates**: Text prompts fade in/out at key analysis milestones alongside the loading spinner
 - **UI Spacing**: Consistent spacing between header and bias score div for improved visual alignment
 - **Responsive Layout**: UI adapts to the side panel dimensions
-- **Prompt View Page**: Simplified placeholder page for future JSON-based prompt editing implementation
+- **Prompt Editor**: Comprehensive interface for customizing the AI prompt with separate sections for Personality and Dashboard Items
 
 ### Data Management
 - **History Tracking**: Previously analyzed articles are saved and can be revisited
@@ -51,7 +51,7 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - **Settings Implementation**: Add user-configurable options
 - **Export Functionality**: Allow users to export analysis results or history
 - **Error Recovery**: Improve handling of network failures and API issues
-- **Prompt Customization UI**: Enhance the UI for customizing prompt sections using the JSON framework
+- **Advanced Prompt Features**: Add ability to create and save custom prompt templates
 
 ### Medium-term Features
 - **Backend Deployment**: Move from local-only to a hosted solution
@@ -83,7 +83,7 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 2. **Limited Settings**: Few user-configurable options currently available
 3. **No Offline Mode**: Cannot function without internet connection
 4. **Limited Feedback Mechanisms**: No way for users to report inaccurate analyses
-5. **Prompt Customization Complexity**: Current prompt editing interface could be more intuitive
+5. **Prompt Template Management**: No way to save and manage multiple prompt templates
 
 ### Business/Product Issues
 1. **Cost Management**: OpenAI API usage incurs costs that need to be managed
@@ -131,11 +131,12 @@ The Media Bias Analyzer is currently at version 2.0, with a functional Chrome ex
 - JSON-based prompt framework with categorized structure for improved maintainability
 - Dynamic UI generation based on analysis response structure
 - Removed hardcoded fallback approaches for consistent technology alignment
+- AI Bias Prompt editor with separate sections for Personality and Dashboard Items
 
 ### Future Versions
 - **Version 2.1**: Enhanced text extraction and settings implementation
-- **Version 2.2**: Improved prompt customization UI leveraging the categorized JSON framework
-- **Version 2.5**: Deployed backend and export functionality
+- **Version 2.2**: Prompt template management and export/import functionality
+- **Version 2.5**: Deployed backend and cloud synchronization
 - **Version 3.0**: User accounts and advanced analytics
 
 ## Lessons Learned

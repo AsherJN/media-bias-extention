@@ -29,7 +29,13 @@ The Media Bias Analyzer is currently at version 2.0, with a focus on the followi
 - Designed a history page with entry management functionality
 - Created a settings page framework for future configuration options
 - Removed the section-based prompt editing UI and Advanced Settings page
-- Added a placeholder message for the "View AI Bias Prompt" page for future implementation
+- Implemented a comprehensive AI Bias Prompt editor in the "View AI Bias Prompt" page:
+  - Separated into Personality and Dashboard Items sections
+  - Allows editing of content for Personality items
+  - Allows editing of both title and content for Dashboard Items
+  - Each card has a save button with success feedback
+  - Added a Reset to Default button at the top of the page
+  - Hidden prompt_instructions section from user editing
 - Added task progress updates: fading text prompts at key analysis milestones alongside loading spinner
 - Fixed spacing between header div and bias score div for a consistent, polished layout
 
@@ -91,7 +97,7 @@ The Media Bias Analyzer is currently at version 2.0, with a focus on the followi
    - UI theme preferences
    - History retention period
 3. **Add Export Functionality**: Allow users to export analysis results or history
-4. **Enhance Prompt Customization UI**: Build a more intuitive interface for customizing prompt sections using the new JSON framework
+4. **Advanced Prompt Features**: Add ability to create, save, and manage multiple prompt templates
 
 ### Medium-term Goals
 1. **Deploy Backend Server**: Move from local-only backend to a hosted solution
