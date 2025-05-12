@@ -20,6 +20,12 @@
           "title": "Context",
           "content": "This Media Bias Analysis Rubric provides a flexible scaffold for objectively evaluating news articles. It defines four **default** analytical dimensions—**Overall Bias Score, Language & Tone, Framing & Perspective, and Alternative Perspectives**—which power the extension's built‑in dashboard. **However, users or downstream integrations may introduce additional or customized dashboard items (e.g., \"Source Diversity,\" \"Fact‑vs‑Opinion Ratio,\" \"Use of Visual Imagery\").**  \n• When extra metrics are present, interpret each according to any definition supplied and apply the same rigor you use for the core dimensions.  \n• If a new metric appears without an explicit definition, infer its intent using established media‑literacy principles and note any assumptions in your analysis.  \nThis flexibility ensures your evaluations remain coherent and comprehensive even as the dashboard evolves.",
           "order": 2
+        },
+        {
+          "id": "custom_instructions",
+          "title": "Custom Instructions",
+          "content": "",
+          "order": 13
         }
       ]
     },
@@ -99,7 +105,7 @@
           "id": "json_schema",
           "title": "Required JSON Schema",
           "content": "Required JSON Schema  \n```json\n{\n  \"dashboard_item_1\": [integer –5 to +5],\n  \"dashboard_item_2\": \"[insert output here]\",\n  \"dashboard_item_3\": \"[insert output here]\",\n  \"dashboard_item_4\": \"[insert output here]\",\n  \"dashboard_item_5\": \"[insert output here]\",\n  \"dashboard_item_6\": \"[insert output here]\",\n  \"dashboard_item_7\": \"[insert output here]\",\n  \"dashboard_item_8\": \"[insert output here]\"\n}\n```",
-          "order": 13
+          "order": 14
         }
       ]
     }

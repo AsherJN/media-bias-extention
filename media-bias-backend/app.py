@@ -57,11 +57,11 @@ def analyze():
             # Remove the Role section from the user prompt
             user_content = full_prompt.replace(f"Role:{role_match.group(1)}────────", "────────", 1)
             print("Using old format with extracted system content from Role section")
-        else:
-            # Fallback if Role section not found
-            system_content = "You are a highly vigilant internet watchdog whose main priority is to assist users in navigating media bias. Provide responses in JSON format only."
-            user_content = full_prompt
-            print("Using old format with default system content")
+        # else:
+        #     # Fallback if Role section not found
+        #     system_content = "You are a highly vigilant internet watchdog whose main priority is to assist users in navigating media bias. Provide responses in JSON format only."
+        #     user_content = full_prompt
+        #     print("Using old format with default system content")
     else:
         return jsonify({'error': 'No prompt information provided (neither systemContent/userContent nor prompt)'}), 400
 
@@ -69,23 +69,36 @@ def analyze():
         print("Starting analysis of article text...")
         
         # Add instructions to maintain role personality within JSON fields
-        personality_instruction = "When responding, maintain your role's personality and voice WITHIN the content of each JSON field. Ensure the personality and language of your role are reflected in the text values of the JSON fields, while still maintaining the proper JSON structure."
+        personality_instruction = "When responding, maintain your role's personality and voice WITHIN the content of each JSON field. Ensure the personality and language of your role are reflected in the text values of the JSON fields, while still maintaining the proper JSON structure. Additionally, when responding, strictly follow and maintain your custom instructions WITHIN the content of each JSON field. Ensure the custom instructions are reflected in the text values of the JSON fields, while still maintaining the proper JSON structure."
         
         # Append the personality instruction to the system content
         enhanced_system_content = system_content + "\n\n" + personality_instruction
-        
+
+
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="chatgpt-4o-latest",
             messages=[
-                {
-                    "role": "system",
-                    "content": enhanced_system_content
-                },
+                {"role": "system", "content": enhanced_system_content},
                 {"role": "user", "content": user_content}
             ],
             temperature=0.3,
-            response_format={"type": "json_object"}  # Force JSON response format
+            response_format={"type": "json_object"},  # Force JSON response format
+            max_tokens=1000,  # Adjust based on expected response length
+            # user="media-bias-analyzer" #User identifier - for tracking API usage and detecting abuse – will implement later
         )
+        
+        # response = client.chat.completions.create(
+        #     model="gpt-4o",
+        #     messages=[
+        #         {
+        #             "role": "system",
+        #             "content": enhanced_system_content
+        #         },
+        #         {"role": "user", "content": user_content}
+        #     ],
+        #     temperature=0.3,
+        #     response_format={"type": "json_object"}  # Force JSON response format
+        # )
 
         print("Received response from OpenAI API")
         

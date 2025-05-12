@@ -48,10 +48,6 @@ flowchart LR
 - **Customizable AI Prompt**: Edit individual sections or the complete prompt used for analysis
 - **Client-side Prompt Storage**: Saves customized prompts using Chrome storage
 
-## Screenshots
-
-*[Screenshots would be added here]*
-
 ## Installation
 
 ### Prerequisites
